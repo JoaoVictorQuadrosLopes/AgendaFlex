@@ -8,5 +8,6 @@ router.use(authMiddleware);
 router.get("/", profissionalController.listar);
 router.post("/", profissionalController.criar);
 router.put("/:id", profissionalController.atualizar);
+router.delete("/:id", profissionalController.excluir);
 
 module.exports = router;

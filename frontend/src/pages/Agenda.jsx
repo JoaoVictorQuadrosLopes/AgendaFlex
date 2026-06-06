@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { MessageCircle, Plus } from "lucide-react";
+import { MessageCircle, Plus, Trash2 } from "lucide-react";
 import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
@@ -87,11 +87,26 @@ export default function Agenda() {
     carregarAgenda();
   }
 
+  async function excluirAgendamento(id) {
+    if (!window.confirm("Excluir este agendamento?")) {
+      return;
+    }
+
+    await api.delete(`/agendamentos/${id}`);
+    carregarAgenda();
+  }
+
   function whatsappLink(item) {
     const telefone = (item.cliente_telefone || "").replace(/\D/g, "");
     const mensagem = `Ola ${item.cliente_nome}, seu atendimento de ${item.servico_nome} esta marcado para ${item.data_agendamento} as ${item.hora_inicio}.`;
     return `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
   }
+
+  const resumoDia = useMemo(() => {
+    const confirmados = agendamentos.filter((item) => item.status === "CONFIRMADO").length;
+    const cancelados = agendamentos.filter((item) => item.status === "CANCELADO").length;
+    return { total: agendamentos.length, confirmados, cancelados };
+  }, [agendamentos]);
 
   return (
     <section className="split-view agenda-view">
@@ -152,6 +167,11 @@ export default function Agenda() {
           <div>
             <span className="eyebrow">Agenda do dia</span>
             <h2>{dataSelecionada}</h2>
+            <div className="agenda-summary">
+              <span>{resumoDia.total} agendamentos</span>
+              <span>{resumoDia.confirmados} confirmados</span>
+              <span>{resumoDia.cancelados} cancelados</span>
+            </div>
           </div>
           <input className="date-filter" type="date" value={dataSelecionada} onChange={(e) => setDataSelecionada(e.target.value)} />
         </div>
@@ -183,6 +203,9 @@ export default function Agenda() {
                   <a className="icon-button" href={whatsappLink(item)} target="_blank" rel="noreferrer" title="Enviar WhatsApp">
                     <MessageCircle size={18} />
                   </a>
+                  <button className="icon-button danger" type="button" onClick={() => excluirAgendamento(item.id)} title="Excluir agendamento">
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               </article>
             ))}

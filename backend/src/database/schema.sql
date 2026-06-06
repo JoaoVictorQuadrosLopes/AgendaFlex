@@ -5,8 +5,19 @@ CREATE TABLE IF NOT EXISTS empresas (
   documento VARCHAR(30),
   telefone VARCHAR(30),
   endereco TEXT,
+  termo_cliente VARCHAR(80) DEFAULT 'Cliente',
+  termo_profissional VARCHAR(80) DEFAULT 'Profissional',
+  termo_servico VARCHAR(80) DEFAULT 'Servico',
+  confirmar_whatsapp BOOLEAN DEFAULT true,
+  lembrete_email BOOLEAN DEFAULT false,
   criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS termo_cliente VARCHAR(80) DEFAULT 'Cliente';
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS termo_profissional VARCHAR(80) DEFAULT 'Profissional';
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS termo_servico VARCHAR(80) DEFAULT 'Servico';
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS confirmar_whatsapp BOOLEAN DEFAULT true;
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS lembrete_email BOOLEAN DEFAULT false;
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,

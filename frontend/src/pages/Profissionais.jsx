@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
@@ -8,6 +8,7 @@ import FormField from "../components/FormField.jsx";
 export default function Profissionais() {
   const [profissionais, setProfissionais] = useState([]);
   const [form, setForm] = useState({ nome: "", telefone: "", email: "", funcao: "" });
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     carregar();
@@ -20,9 +21,37 @@ export default function Profissionais() {
 
   async function salvar(event) {
     event.preventDefault();
-    await api.post("/profissionais", form);
-    setForm({ nome: "", telefone: "", email: "", funcao: "" });
+    if (editingId) {
+      await api.put(`/profissionais/${editingId}`, { ...form, ativo: true });
+    } else {
+      await api.post("/profissionais", form);
+    }
+    limparFormulario();
     carregar();
+  }
+
+  function editar(profissional) {
+    setEditingId(profissional.id);
+    setForm({
+      nome: profissional.nome || "",
+      telefone: profissional.telefone || "",
+      email: profissional.email || "",
+      funcao: profissional.funcao || ""
+    });
+  }
+
+  async function excluir(id) {
+    if (!window.confirm("Excluir este profissional? Os agendamentos antigos serao mantidos sem o vinculo.")) {
+      return;
+    }
+
+    await api.delete(`/profissionais/${id}`);
+    carregar();
+  }
+
+  function limparFormulario() {
+    setEditingId(null);
+    setForm({ nome: "", telefone: "", email: "", funcao: "" });
   }
 
   function update(field, value) {
@@ -33,7 +62,12 @@ export default function Profissionais() {
     <section className="split-view">
       <form className="panel compact-form" onSubmit={salvar}>
         <div className="panel-header">
-          <h2>Novo profissional</h2>
+          <h2>{editingId ? "Editar profissional" : "Novo profissional"}</h2>
+          {editingId && (
+            <button className="icon-button" type="button" onClick={limparFormulario} title="Cancelar edicao">
+              <X size={18} />
+            </button>
+          )}
         </div>
         <FormField label="Nome">
           <input value={form.nome} onChange={(e) => update("nome", e.target.value)} required />
@@ -49,7 +83,7 @@ export default function Profissionais() {
         </FormField>
         <button className="primary-button" type="submit">
           <Plus size={18} />
-          Salvar profissional
+          {editingId ? "Atualizar profissional" : "Salvar profissional"}
         </button>
       </form>
 
@@ -69,6 +103,14 @@ export default function Profissionais() {
                   <span>{profissional.funcao || "Funcao nao informada"}</span>
                 </div>
                 <span>{profissional.telefone || "Sem telefone"}</span>
+                <div className="row-actions">
+                  <button className="icon-button" type="button" onClick={() => editar(profissional)} title="Editar profissional">
+                    <Pencil size={17} />
+                  </button>
+                  <button className="icon-button danger" type="button" onClick={() => excluir(profissional.id)} title="Excluir profissional">
+                    <Trash2 size={17} />
+                  </button>
+                </div>
               </article>
             ))}
           </div>

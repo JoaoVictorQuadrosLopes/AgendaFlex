@@ -117,6 +117,15 @@ button {
   color: #24364b;
 }
 
+.icon-button.danger {
+  color: #9b1c2b;
+}
+
+.icon-button.danger:hover {
+  border-color: #ffc9d0;
+  background: #fff3f5;
+}
+
 .full {
   width: 100%;
 }
@@ -997,6 +1006,13 @@ button {
   padding: 16px 18px;
 }
 
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
 .list-row strong,
 .list-row span,
 .time-block strong,
@@ -1053,6 +1069,22 @@ button {
 
 .schedule-actions select {
   min-width: 168px;
+}
+
+.agenda-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.agenda-summary span {
+  border: 1px solid #dce6f1;
+  border-radius: 999px;
+  color: #61788f;
+  font-size: 0.78rem;
+  font-weight: 850;
+  padding: 5px 9px;
 }
 
 .status-badge {
@@ -1554,6 +1586,15 @@ button {
   .schedule-actions select,
   .schedule-actions .icon-button {
     width: 100%;
+  }
+
+  .row-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .row-actions .icon-button {
+    flex: 1;
   }
 
   .auth-page {

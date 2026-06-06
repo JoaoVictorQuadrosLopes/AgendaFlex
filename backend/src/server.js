@@ -10,6 +10,7 @@ const servicoRoutes = require("./routes/servicoRoutes");
 const agendamentoRoutes = require("./routes/agendamentoRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const assinaturaRoutes = require("./routes/assinaturaRoutes");
+const empresaRoutes = require("./routes/empresaRoutes");
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use("/api/servicos", servicoRoutes);
 app.use("/api/agendamentos", agendamentoRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/assinatura", assinaturaRoutes);
+app.use("/api/empresa", empresaRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

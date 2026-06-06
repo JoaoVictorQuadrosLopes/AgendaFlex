@@ -4,7 +4,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { CalendarDays, CheckCircle2, CircleDollarSign, CreditCard, MessageCircle, ShieldCheck, Users } from "lucide-react";
 import api from "../services/api";
 
-const fallbackData = [
+const emptyWeekData = [
   { name: "Seg", agendamentos: 4 },
   { name: "Ter", agendamentos: 7 },
   { name: "Qua", agendamentos: 5 },
@@ -30,6 +30,7 @@ export default function Dashboard() {
     { label: "Previsto", value: `R$ ${resumo?.faturamento_previsto ?? "0.00"}`, icon: CircleDollarSign },
     { label: "Plano", value: resumo?.assinatura?.plano ?? "starter", icon: CreditCard }
   ];
+  const chartData = resumo?.grafico_semana?.length ? resumo.grafico_semana : emptyWeekData;
 
   return (
     <section className="content-stack">
@@ -83,7 +84,7 @@ export default function Dashboard() {
         </div>
         <div className="chart-box">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={fallbackData}>
+            <BarChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" />
               <YAxis allowDecimals={false} />

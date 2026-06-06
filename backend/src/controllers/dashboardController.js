@@ -3,7 +3,7 @@ const pool = require("../config/database");
 async function resumo(req, res) {
   const empresaId = req.usuario.empresa_id;
 
-  const [hoje, semana, clientes, profissionais, faturamento, assinatura] = await Promise.all([
+  const [hoje, semana, clientes, profissionais, faturamento, assinatura, graficoSemana] = await Promise.all([
     pool.query(
       `SELECT
          COUNT(*)::int AS total,
@@ -35,6 +35,18 @@ async function resumo(req, res) {
        FROM assinaturas
        WHERE empresa_id = $1`,
       [empresaId]
+    ),
+    pool.query(
+      `SELECT
+         TO_CHAR(dia::date, 'DD/MM') AS name,
+         COALESCE(COUNT(a.id), 0)::int AS agendamentos
+       FROM generate_series(CURRENT_DATE, CURRENT_DATE + INTERVAL '6 days', INTERVAL '1 day') AS dia
+       LEFT JOIN agendamentos a
+         ON a.empresa_id = $1
+        AND a.data_agendamento = dia::date
+       GROUP BY dia
+       ORDER BY dia`,
+      [empresaId]
     )
   ]);
 
@@ -44,7 +56,8 @@ async function resumo(req, res) {
     clientes: clientes.rows[0].total,
     profissionais: profissionais.rows[0].total,
     faturamento_previsto: faturamento.rows[0].previsto,
-    assinatura: assinatura.rows[0] || null
+    assinatura: assinatura.rows[0] || null,
+    grafico_semana: graficoSemana.rows
   });
 }
 

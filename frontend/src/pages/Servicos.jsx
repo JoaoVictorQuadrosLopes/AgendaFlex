@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
@@ -8,6 +8,7 @@ import FormField from "../components/FormField.jsx";
 export default function Servicos() {
   const [servicos, setServicos] = useState([]);
   const [form, setForm] = useState({ nome: "", descricao: "", duracao_minutos: 30, valor: 0 });
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     carregar();
@@ -20,9 +21,37 @@ export default function Servicos() {
 
   async function salvar(event) {
     event.preventDefault();
-    await api.post("/servicos", form);
-    setForm({ nome: "", descricao: "", duracao_minutos: 30, valor: 0 });
+    if (editingId) {
+      await api.put(`/servicos/${editingId}`, { ...form, ativo: true });
+    } else {
+      await api.post("/servicos", form);
+    }
+    limparFormulario();
     carregar();
+  }
+
+  function editar(servico) {
+    setEditingId(servico.id);
+    setForm({
+      nome: servico.nome || "",
+      descricao: servico.descricao || "",
+      duracao_minutos: servico.duracao_minutos || 30,
+      valor: servico.valor || 0
+    });
+  }
+
+  async function excluir(id) {
+    if (!window.confirm("Excluir este servico? Os agendamentos antigos serao mantidos sem o vinculo.")) {
+      return;
+    }
+
+    await api.delete(`/servicos/${id}`);
+    carregar();
+  }
+
+  function limparFormulario() {
+    setEditingId(null);
+    setForm({ nome: "", descricao: "", duracao_minutos: 30, valor: 0 });
   }
 
   function update(field, value) {
@@ -33,7 +62,12 @@ export default function Servicos() {
     <section className="split-view">
       <form className="panel compact-form" onSubmit={salvar}>
         <div className="panel-header">
-          <h2>Novo servico</h2>
+          <h2>{editingId ? "Editar servico" : "Novo servico"}</h2>
+          {editingId && (
+            <button className="icon-button" type="button" onClick={limparFormulario} title="Cancelar edicao">
+              <X size={18} />
+            </button>
+          )}
         </div>
         <FormField label="Nome">
           <input value={form.nome} onChange={(e) => update("nome", e.target.value)} required />
@@ -51,7 +85,7 @@ export default function Servicos() {
         </div>
         <button className="primary-button" type="submit">
           <Plus size={18} />
-          Salvar servico
+          {editingId ? "Atualizar servico" : "Salvar servico"}
         </button>
       </form>
 
@@ -71,6 +105,14 @@ export default function Servicos() {
                   <span>{servico.duracao_minutos} min</span>
                 </div>
                 <span>R$ {servico.valor}</span>
+                <div className="row-actions">
+                  <button className="icon-button" type="button" onClick={() => editar(servico)} title="Editar servico">
+                    <Pencil size={17} />
+                  </button>
+                  <button className="icon-button danger" type="button" onClick={() => excluir(servico.id)} title="Excluir servico">
+                    <Trash2 size={17} />
+                  </button>
+                </div>
               </article>
             ))}
           </div>
