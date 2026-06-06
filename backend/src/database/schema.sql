@@ -72,11 +72,20 @@ CREATE TABLE IF NOT EXISTS assinaturas (
   status VARCHAR(30) NOT NULL DEFAULT 'ATIVA',
   valor_mensal DECIMAL(10,2) DEFAULT 59.00,
   ciclo VARCHAR(20) DEFAULT 'MENSAL',
+  provider VARCHAR(40) DEFAULT 'MERCADO_PAGO',
+  external_reference VARCHAR(120),
+  mercado_pago_preapproval_id VARCHAR(120),
+  checkout_url TEXT,
   inicio_em DATE DEFAULT CURRENT_DATE,
   proxima_cobranca DATE DEFAULT (CURRENT_DATE + INTERVAL '30 days')::date,
   atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE assinaturas ADD COLUMN IF NOT EXISTS provider VARCHAR(40) DEFAULT 'MERCADO_PAGO';
+ALTER TABLE assinaturas ADD COLUMN IF NOT EXISTS external_reference VARCHAR(120);
+ALTER TABLE assinaturas ADD COLUMN IF NOT EXISTS mercado_pago_preapproval_id VARCHAR(120);
+ALTER TABLE assinaturas ADD COLUMN IF NOT EXISTS checkout_url TEXT;
 
 INSERT INTO assinaturas (empresa_id)
 SELECT id FROM empresas

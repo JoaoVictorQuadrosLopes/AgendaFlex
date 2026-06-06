@@ -1218,6 +1218,36 @@ button {
   font-weight: 850;
 }
 
+.subscription-status {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 12px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 900;
+  padding: 7px 11px;
+}
+
+.status-ATIVA {
+  background: #e7f9f5;
+  color: #087767;
+}
+
+.status-PENDENTE {
+  background: #fff7e3;
+  color: #956400;
+}
+
+.status-PAUSADA {
+  background: #edf4ff;
+  color: #175cd3;
+}
+
+.status-CANCELADA {
+  background: #fff0f2;
+  color: #9b1c2b;
+}
+
 .subscription-seal {
   gap: 10px;
   border: 1px solid #bcebf0;
