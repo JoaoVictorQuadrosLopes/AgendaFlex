@@ -13,7 +13,8 @@ const initialForm = {
   termo_profissional: "Profissional",
   termo_servico: "Servico",
   confirmar_whatsapp: true,
-  lembrete_email: false
+  lembrete_email: false,
+  whatsapp_phone_number_id: ""
 };
 
 const segmentos = [
@@ -41,6 +42,7 @@ export default function Configuracoes() {
       { label: "Agenda chama profissionais de", value: form.termo_profissional || "Profissional" },
       { label: "Agenda chama servicos de", value: form.termo_servico || "Servico" },
       { label: "WhatsApp", value: form.confirmar_whatsapp ? "Confirmacao ativa" : "Desativado" },
+      { label: "Phone Number ID", value: form.whatsapp_phone_number_id || "Nao vinculado" },
       { label: "E-mail", value: form.lembrete_email ? "Lembretes ativos" : "Desativado" }
     ],
     [form]
@@ -65,7 +67,8 @@ export default function Configuracoes() {
           termo_profissional: data.termo_profissional || "Profissional",
           termo_servico: data.termo_servico || "Servico",
           confirmar_whatsapp: Boolean(data.confirmar_whatsapp),
-          lembrete_email: Boolean(data.lembrete_email)
+          lembrete_email: Boolean(data.lembrete_email),
+          whatsapp_phone_number_id: data.whatsapp_phone_number_id || ""
         });
       } catch (error) {
         if (mounted) {
@@ -110,7 +113,8 @@ export default function Configuracoes() {
         termo_profissional: data.termo_profissional || "Profissional",
         termo_servico: data.termo_servico || "Servico",
         confirmar_whatsapp: Boolean(data.confirmar_whatsapp),
-        lembrete_email: Boolean(data.lembrete_email)
+        lembrete_email: Boolean(data.lembrete_email),
+        whatsapp_phone_number_id: data.whatsapp_phone_number_id || ""
       });
       setSucesso("Configuracoes salvas com sucesso.");
     } catch (error) {
@@ -196,6 +200,14 @@ export default function Configuracoes() {
           <span>Usar confirmacao por WhatsApp</span>
         </label>
 
+        <FormField label="Phone Number ID do WhatsApp Cloud API">
+          <input
+            value={form.whatsapp_phone_number_id}
+            onChange={(event) => update("whatsapp_phone_number_id", event.target.value)}
+            placeholder="Ex: 123456789012345"
+          />
+        </FormField>
+
         <label className="toggle-row">
           <input
             type="checkbox"
@@ -241,7 +253,7 @@ export default function Configuracoes() {
             <MessageSquareText size={21} />
             <div>
               <strong>Comunicacao pronta para evoluir</strong>
-              <span>As preferencias salvas aqui podem alimentar mensagens e automacoes futuras.</span>
+              <span>Confirmacoes usam a WhatsApp Cloud API oficial da Meta.</span>
             </div>
           </article>
           <article>

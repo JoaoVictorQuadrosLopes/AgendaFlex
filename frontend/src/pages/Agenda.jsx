@@ -26,6 +26,7 @@ export default function Agenda() {
   const [profissionais, setProfissionais] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [erro, setErro] = useState("");
+  const [sucesso, setSucesso] = useState("");
   const [form, setForm] = useState({
     cliente_id: "",
     profissional_id: "",
@@ -87,6 +88,18 @@ export default function Agenda() {
     carregarAgenda();
   }
 
+  async function enviarConfirmacaoWhatsapp(id) {
+    setErro("");
+    setSucesso("");
+
+    try {
+      await api.post(`/agendamentos/${id}/whatsapp-confirmacao`);
+      setSucesso("Mensagem de confirmacao enviada pelo WhatsApp.");
+    } catch (error) {
+      setErro(error.response?.data?.mensagem || "Nao foi possivel enviar a confirmacao pelo WhatsApp.");
+    }
+  }
+
   async function excluirAgendamento(id) {
     if (!window.confirm("Excluir este agendamento?")) {
       return;
@@ -94,12 +107,6 @@ export default function Agenda() {
 
     await api.delete(`/agendamentos/${id}`);
     carregarAgenda();
-  }
-
-  function whatsappLink(item) {
-    const telefone = (item.cliente_telefone || "").replace(/\D/g, "");
-    const mensagem = `Ola ${item.cliente_nome}, seu atendimento de ${item.servico_nome} esta marcado para ${item.data_agendamento} as ${item.hora_inicio}.`;
-    return `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
   }
 
   const resumoDia = useMemo(() => {
@@ -156,6 +163,7 @@ export default function Agenda() {
           <textarea value={form.observacoes} onChange={(e) => update("observacoes", e.target.value)} rows="3" />
         </FormField>
         {erro && <div className="alert-error">{erro}</div>}
+        {sucesso && <div className="soft-alert">{sucesso}</div>}
         <button className="primary-button" type="submit">
           <Plus size={18} />
           Agendar
@@ -200,9 +208,14 @@ export default function Agenda() {
                       </option>
                     ))}
                   </select>
-                  <a className="icon-button" href={whatsappLink(item)} target="_blank" rel="noreferrer" title="Enviar WhatsApp">
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={() => enviarConfirmacaoWhatsapp(item.id)}
+                    title="Enviar confirmacao pelo WhatsApp"
+                  >
                     <MessageCircle size={18} />
-                  </a>
+                  </button>
                   <button className="icon-button danger" type="button" onClick={() => excluirAgendamento(item.id)} title="Excluir agendamento">
                     <Trash2 size={18} />
                   </button>

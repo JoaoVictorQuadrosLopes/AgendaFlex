@@ -4,7 +4,7 @@ async function obter(req, res) {
   const result = await pool.query(
     `SELECT id, nome, tipo_negocio, documento, telefone, endereco,
             termo_cliente, termo_profissional, termo_servico,
-            confirmar_whatsapp, lembrete_email, criado_em
+            confirmar_whatsapp, lembrete_email, whatsapp_phone_number_id, criado_em
      FROM empresas
      WHERE id = $1`,
     [req.usuario.empresa_id]
@@ -28,7 +28,8 @@ async function atualizar(req, res) {
     termo_profissional,
     termo_servico,
     confirmar_whatsapp,
-    lembrete_email
+    lembrete_email,
+    whatsapp_phone_number_id
   } = req.body;
 
   if (!nome || !tipo_negocio) {
@@ -46,11 +47,12 @@ async function atualizar(req, res) {
          termo_profissional = $7,
          termo_servico = $8,
          confirmar_whatsapp = $9,
-         lembrete_email = $10
-     WHERE id = $11
+         lembrete_email = $10,
+         whatsapp_phone_number_id = $11
+     WHERE id = $12
      RETURNING id, nome, tipo_negocio, documento, telefone, endereco,
                termo_cliente, termo_profissional, termo_servico,
-               confirmar_whatsapp, lembrete_email, criado_em`,
+               confirmar_whatsapp, lembrete_email, whatsapp_phone_number_id, criado_em`,
     [
       nome,
       tipo_negocio,
@@ -62,6 +64,7 @@ async function atualizar(req, res) {
       termo_servico || "Servico",
       Boolean(confirmar_whatsapp),
       Boolean(lembrete_email),
+      whatsapp_phone_number_id || null,
       req.usuario.empresa_id
     ]
   );

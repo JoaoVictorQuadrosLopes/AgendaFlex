@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const { enviarMensagemTexto } = require("../services/whatsappService");
 
 const STATUS_VALIDOS = ["AGENDADO", "CONFIRMADO", "EM_ATENDIMENTO", "FINALIZADO", "CANCELADO", "NAO_COMPARECEU"];
 
@@ -103,4 +104,43 @@ async function excluir(req, res) {
   res.status(204).send();
 }
 
-module.exports = { listar, criar, alterarStatus, excluir };
+async function enviarConfirmacaoWhatsapp(req, res) {
+  const result = await pool.query(
+    `SELECT a.*, c.nome AS cliente_nome, c.telefone AS cliente_telefone,
+            p.nome AS profissional_nome, s.nome AS servico_nome
+     FROM agendamentos a
+     LEFT JOIN clientes c ON c.id = a.cliente_id
+     LEFT JOIN profissionais p ON p.id = a.profissional_id
+     LEFT JOIN servicos s ON s.id = a.servico_id
+     WHERE a.id = $1 AND a.empresa_id = $2`,
+    [req.params.id, req.usuario.empresa_id]
+  );
+
+  const agendamento = result.rows[0];
+
+  if (!agendamento) {
+    return res.status(404).json({ mensagem: "Agendamento nao encontrado" });
+  }
+
+  const telefone = (agendamento.cliente_telefone || "").replace(/\D/g, "");
+
+  if (!telefone) {
+    return res.status(400).json({ mensagem: "Cliente sem telefone cadastrado" });
+  }
+
+  const mensagem = [
+    `Ola ${agendamento.cliente_nome || "cliente"}.`,
+    `Seu atendimento ${agendamento.servico_nome || ""} esta marcado para ${agendamento.data_agendamento} as ${String(agendamento.hora_inicio).slice(0, 5)}.`,
+    `Para confirmar, responda: confirmar #${agendamento.id}`
+  ].join(" ");
+
+  const envio = await enviarMensagemTexto(telefone, mensagem);
+
+  if (!envio) {
+    return res.status(502).json({ mensagem: "Nao foi possivel enviar a mensagem pelo WhatsApp" });
+  }
+
+  res.json({ mensagem: "Confirmacao enviada pelo WhatsApp", envio });
+}
+
+module.exports = { listar, criar, alterarStatus, excluir, enviarConfirmacaoWhatsapp };

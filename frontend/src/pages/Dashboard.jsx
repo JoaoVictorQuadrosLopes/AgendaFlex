@@ -1,7 +1,16 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { CalendarDays, CheckCircle2, CircleDollarSign, CreditCard, MessageCircle, ShieldCheck, Users } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarDays,
+  CheckCircle2,
+  CircleDollarSign,
+  CreditCard,
+  MessageCircle,
+  ShieldCheck,
+  Users
+} from "lucide-react";
 import api from "../services/api";
 
 const emptyWeekData = [
@@ -36,6 +45,21 @@ export default function Dashboard() {
     <section className="content-stack">
       {erro && <div className="soft-alert">{erro}</div>}
 
+      <section className="dashboard-hero">
+        <div>
+          <span className="eyebrow">Resumo do dia</span>
+          <h2>{resumo?.hoje?.total ?? 0} atendimentos na agenda</h2>
+          <p>
+            {resumo?.hoje?.confirmados ?? 0} confirmados hoje. O restante da operacao aparece abaixo com clientes,
+            previsao de faturamento e assinatura.
+          </p>
+        </div>
+        <div className="dashboard-hero-action">
+          <ArrowUpRight size={20} />
+          <span>Semana em movimento</span>
+        </div>
+      </section>
+
       <div className="stats-grid">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -55,22 +79,22 @@ export default function Dashboard() {
         <article>
           <MessageCircle size={20} />
           <div>
-            <strong>Confirmação por WhatsApp</strong>
-            <span>Envie mensagens de confirmação direto pela agenda do dia.</span>
+            <strong>Confirmacao por WhatsApp</strong>
+            <span>Envie mensagens de confirmacao direto pela agenda do dia.</span>
           </div>
         </article>
         <article>
           <ShieldCheck size={20} />
           <div>
-            <strong>Gestão por segmento</strong>
-            <span>Organize clientes, serviços e responsáveis conforme a rotina do negócio.</span>
+            <strong>Gestao por segmento</strong>
+            <span>Organize clientes, servicos e responsaveis conforme a rotina do negocio.</span>
           </div>
         </article>
         <article>
           <CalendarDays size={20} />
           <div>
             <strong>Agenda sem conflito</strong>
-            <span>O backend impede dois atendimentos no mesmo horário para o mesmo profissional.</span>
+            <span>O backend impede dois atendimentos no mesmo horario para o mesmo profissional.</span>
           </div>
         </article>
       </section>
@@ -89,7 +113,7 @@ export default function Dashboard() {
               <XAxis dataKey="name" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="agendamentos" fill="#2563eb" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="agendamentos" fill="#0f8f9c" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS empresas (
   termo_servico VARCHAR(80) DEFAULT 'Servico',
   confirmar_whatsapp BOOLEAN DEFAULT true,
   lembrete_email BOOLEAN DEFAULT false,
+  whatsapp_phone_number_id VARCHAR(80),
   criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -18,6 +19,7 @@ ALTER TABLE empresas ADD COLUMN IF NOT EXISTS termo_profissional VARCHAR(80) DEF
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS termo_servico VARCHAR(80) DEFAULT 'Servico';
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS confirmar_whatsapp BOOLEAN DEFAULT true;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS lembrete_email BOOLEAN DEFAULT false;
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS whatsapp_phone_number_id VARCHAR(80);
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
@@ -90,6 +92,19 @@ CREATE TABLE IF NOT EXISTS assinaturas (
   inicio_em DATE DEFAULT CURRENT_DATE,
   proxima_cobranca DATE DEFAULT (CURRENT_DATE + INTERVAL '30 days')::date,
   atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS whatsapp_mensagens (
+  id SERIAL PRIMARY KEY,
+  empresa_id INTEGER REFERENCES empresas(id) ON DELETE SET NULL,
+  whatsapp_message_id VARCHAR(160) UNIQUE,
+  telefone_cliente VARCHAR(30),
+  nome_cliente VARCHAR(150),
+  conteudo TEXT,
+  acao_detectada VARCHAR(60),
+  status_processamento VARCHAR(30) DEFAULT 'RECEBIDO',
+  erro TEXT,
   criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -11,7 +11,8 @@ import {
   Scissors,
   ShieldCheck,
   Users,
-  Wrench
+  Wrench,
+  Zap
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
@@ -39,14 +40,38 @@ const titles = {
   "/app/configuracoes": "Configuracoes"
 };
 
+const subtitles = {
+  "/app": "Visao geral da operacao, agenda do dia e desempenho da semana.",
+  "/app/agenda": "Crie, acompanhe e confirme atendimentos sem conflito de horario.",
+  "/app/clientes": "Organize a base de clientes e mantenha os contatos sempre a mao.",
+  "/app/profissionais": "Gerencie quem atende, funcoes e dados de contato.",
+  "/app/servicos": "Configure servicos, duracoes e valores da agenda.",
+  "/app/modulos": "Veja os modulos que podem evoluir a operacao.",
+  "/app/relatorios": "Acompanhe leituras importantes sobre movimento e receita.",
+  "/app/assinatura": "Controle plano, cobranca e checkout da assinatura.",
+  "/app/configuracoes": "Ajuste dados da empresa e a linguagem usada no sistema."
+};
+
+function initials(name = "Usuario") {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
 export default function AppLayout() {
   const { usuario, logout } = useAuth();
   const location = useLocation();
+  const title = titles[location.pathname] || "AgendaFlex";
+  const subtitle = subtitles[location.pathname] || "Gestao simples para sua rotina de agendamentos.";
 
   return (
     <div className="workspace-shell">
-      <header className="workspace-header">
-        <div className="workspace-inner">
+      <div className="workspace-frame">
+        <aside className="workspace-sidebar">
           <div className="brand">
             <div className="brand-mark">
               <Wrench size={21} />
@@ -54,6 +79,14 @@ export default function AppLayout() {
             <div>
               <strong>AgendaFlex</strong>
               <span>Gestao de agendamentos</span>
+            </div>
+          </div>
+
+          <div className="workspace-quick-card">
+            <Zap size={18} />
+            <div>
+              <strong>Operacao online</strong>
+              <span>Dados em nuvem e rotina centralizada.</span>
             </div>
           </div>
 
@@ -69,7 +102,8 @@ export default function AppLayout() {
             })}
           </nav>
 
-          <div className="workspace-user">
+          <div className="sidebar-footer">
+            <div className="workspace-avatar">{initials(usuario?.nome)}</div>
             <div>
               <span>{usuario?.tipo || "ADMIN"}</span>
               <strong>{usuario?.nome || "Usuario"}</strong>
@@ -78,20 +112,32 @@ export default function AppLayout() {
               <LogOut size={18} />
             </button>
           </div>
+        </aside>
+
+        <div className="workspace-content">
+          <header className="workspace-topbar">
+            <div>
+              <span className="eyebrow">AgendaFlex</span>
+              <h1>{title}</h1>
+              <p>{subtitle}</p>
+            </div>
+            <div className="workspace-user">
+              <div className="workspace-avatar">{initials(usuario?.nome)}</div>
+              <div>
+                <span>{usuario?.tipo || "ADMIN"}</span>
+                <strong>{usuario?.nome || "Usuario"}</strong>
+              </div>
+              <button className="icon-button" onClick={logout} title="Sair" type="button">
+                <LogOut size={18} />
+              </button>
+            </div>
+          </header>
+
+          <main className="workspace-main">
+            <Outlet />
+          </main>
         </div>
-      </header>
-
-      <main className="workspace-main">
-        <section className="workspace-title">
-          <div>
-            <span className="eyebrow">AgendaFlex</span>
-            <h1>{titles[location.pathname] || "AgendaFlex"}</h1>
-          </div>
-          <div className="business-pill">Operacao online</div>
-        </section>
-
-        <Outlet />
-      </main>
+      </div>
     </div>
   );
 }
