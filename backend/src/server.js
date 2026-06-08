@@ -12,6 +12,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const assinaturaRoutes = require("./routes/assinaturaRoutes");
 const empresaRoutes = require("./routes/empresaRoutes");
 const whatsappRoutes = require("./routes/whatsappRoutes");
+const publicAgendamentoRoutes = require("./routes/publicAgendamentoRoutes");
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/assinatura", assinaturaRoutes);
 app.use("/api/empresa", empresaRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
+app.use("/api/public/agendar", publicAgendamentoRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

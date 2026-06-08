@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Bell, Building2, Cloud, MessageSquareText, Save, ShieldCheck } from "lucide-react";
+import { Bell, Building2, Cloud, Copy, ExternalLink, MessageSquareText, Save, ShieldCheck } from "lucide-react";
 import FormField from "../components/FormField.jsx";
 import api from "../services/api.js";
 
 const initialForm = {
+  id: "",
   nome: "",
   tipo_negocio: "Beleza",
   documento: "",
@@ -14,7 +15,8 @@ const initialForm = {
   termo_servico: "Servico",
   confirmar_whatsapp: true,
   lembrete_email: false,
-  whatsapp_phone_number_id: ""
+  whatsapp_phone_number_id: "",
+  agendamento_slug: ""
 };
 
 const segmentos = [
@@ -43,6 +45,7 @@ export default function Configuracoes() {
       { label: "Agenda chama servicos de", value: form.termo_servico || "Servico" },
       { label: "WhatsApp", value: form.confirmar_whatsapp ? "Confirmacao ativa" : "Desativado" },
       { label: "Phone Number ID", value: form.whatsapp_phone_number_id || "Nao vinculado" },
+      { label: "Link publico", value: form.agendamento_slug ? `/agendar/${form.agendamento_slug}` : "Usando ID da empresa" },
       { label: "E-mail", value: form.lembrete_email ? "Lembretes ativos" : "Desativado" }
     ],
     [form]
@@ -58,6 +61,7 @@ export default function Configuracoes() {
         if (!mounted) return;
 
         setForm({
+          id: data.id || "",
           nome: data.nome || "",
           tipo_negocio: data.tipo_negocio || "Beleza",
           documento: data.documento || "",
@@ -68,7 +72,8 @@ export default function Configuracoes() {
           termo_servico: data.termo_servico || "Servico",
           confirmar_whatsapp: Boolean(data.confirmar_whatsapp),
           lembrete_email: Boolean(data.lembrete_email),
-          whatsapp_phone_number_id: data.whatsapp_phone_number_id || ""
+          whatsapp_phone_number_id: data.whatsapp_phone_number_id || "",
+          agendamento_slug: data.agendamento_slug || ""
         });
       } catch (error) {
         if (mounted) {
@@ -104,6 +109,7 @@ export default function Configuracoes() {
       const { data } = await api.put("/empresa", form);
 
       setForm({
+        id: data.id || "",
         nome: data.nome || "",
         tipo_negocio: data.tipo_negocio || "Beleza",
         documento: data.documento || "",
@@ -114,7 +120,8 @@ export default function Configuracoes() {
         termo_servico: data.termo_servico || "Servico",
         confirmar_whatsapp: Boolean(data.confirmar_whatsapp),
         lembrete_email: Boolean(data.lembrete_email),
-        whatsapp_phone_number_id: data.whatsapp_phone_number_id || ""
+        whatsapp_phone_number_id: data.whatsapp_phone_number_id || "",
+        agendamento_slug: data.agendamento_slug || ""
       });
       setSucesso("Configuracoes salvas com sucesso.");
     } catch (error) {
@@ -135,6 +142,9 @@ export default function Configuracoes() {
     );
   }
 
+  const agendaRef = form.agendamento_slug || form.id;
+  const linkPublico = agendaRef ? `${window.location.origin}/agendar/${agendaRef}` : "";
+
   return (
     <section className="split-view settings-view">
       <form className="panel compact-form" onSubmit={salvar}>
@@ -150,6 +160,14 @@ export default function Configuracoes() {
 
         <FormField label="Nome da empresa">
           <input value={form.nome} onChange={(event) => update("nome", event.target.value)} />
+        </FormField>
+
+        <FormField label="Link publico de agendamento">
+          <input
+            value={form.agendamento_slug}
+            onChange={(event) => update("agendamento_slug", event.target.value)}
+            placeholder="agendaflex"
+          />
         </FormField>
 
         <FormField label="Segmento">
@@ -271,6 +289,21 @@ export default function Configuracoes() {
             </div>
           </article>
         </div>
+
+        {linkPublico && (
+          <div className="public-link-box">
+            <div>
+              <strong>Link publico de agendamento</strong>
+              <span>{linkPublico}</span>
+            </div>
+            <button type="button" onClick={() => navigator.clipboard?.writeText(linkPublico)} title="Copiar link">
+              <Copy size={18} />
+            </button>
+            <a href={linkPublico} target="_blank" rel="noreferrer" title="Abrir link publico">
+              <ExternalLink size={18} />
+            </a>
+          </div>
+        )}
       </section>
     </section>
   );

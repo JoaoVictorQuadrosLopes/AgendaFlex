@@ -13,6 +13,7 @@ import Modulos from "./pages/Modulos.jsx";
 import Relatorios from "./pages/Relatorios.jsx";
 import Configuracoes from "./pages/Configuracoes.jsx";
 import Assinatura from "./pages/Assinatura.jsx";
+import PublicAgendamento from "./pages/PublicAgendamento.jsx";
 
 function PrivateRoute({ children }) {
   const { autenticado } = useAuth();
@@ -24,6 +25,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/agendar/:empresaId" element={<PublicAgendamento />} />
       <Route
         path="/app"
         element={

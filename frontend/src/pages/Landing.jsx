@@ -67,10 +67,12 @@ export default function Landing() {
           <a href="#funcionalidades">Funcionalidades</a>
           <a href="#segmentos">Segmentos</a>
           <a href="#planos">Planos</a>
+          <Link to="/agendar/agendaflex">Agendar online</Link>
           <a href="#seguranca">Segurança</a>
         </nav>
 
         <div className="site-actions">
+          <Link className="ghost-link" to="/agendar/agendaflex">Agendar</Link>
           <Link className="ghost-link" to="/login">Entrar</Link>
           <Link className="site-button" to="/login">Experimente grátis</Link>
         </div>
@@ -85,7 +87,8 @@ export default function Landing() {
             confirmar e acompanhar serviços com uma experiência simples para a equipe.
           </p>
           <div className="hero-actions">
-            <Link className="site-button big" to="/login">Começar agora</Link>
+            <Link className="site-button big" to="/agendar/agendaflex">Agendar horario</Link>
+            <Link className="outline-button big" to="/login">Acessar painel</Link>
             <a className="ghost-link big" href="#planos">Ver planos</a>
           </div>
           <div className="hero-metrics" aria-label="Resumo de benefícios">

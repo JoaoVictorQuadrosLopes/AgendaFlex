@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS empresas (
   confirmar_whatsapp BOOLEAN DEFAULT true,
   lembrete_email BOOLEAN DEFAULT false,
   whatsapp_phone_number_id VARCHAR(80),
+  agendamento_slug VARCHAR(80) UNIQUE,
   criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -20,6 +21,7 @@ ALTER TABLE empresas ADD COLUMN IF NOT EXISTS termo_servico VARCHAR(80) DEFAULT 
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS confirmar_whatsapp BOOLEAN DEFAULT true;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS lembrete_email BOOLEAN DEFAULT false;
 ALTER TABLE empresas ADD COLUMN IF NOT EXISTS whatsapp_phone_number_id VARCHAR(80);
+ALTER TABLE empresas ADD COLUMN IF NOT EXISTS agendamento_slug VARCHAR(80) UNIQUE;
 
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
