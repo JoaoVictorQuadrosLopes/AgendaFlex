@@ -8,9 +8,12 @@ import {
   KeyRound,
   MessageCircle,
   Package,
+  CheckCircle2,
+  CircleMinus,
   ShieldCheck,
   SlidersHorizontal
 } from "lucide-react";
+import { permissionMatrix, roles } from "../config/permissions.js";
 
 const modulos = [
   {
@@ -87,6 +90,38 @@ export default function Modulos() {
             clientes e serviços, depois recebe permissões, financeiro, relatórios,
             estoque e automações conforme o segmento atendido.
           </p>
+        </div>
+      </section>
+
+      <section className="panel access-matrix-panel">
+        <div className="panel-header">
+          <div>
+            <span className="eyebrow">Hierarquia</span>
+            <h2>Quem acessa cada parte do sistema</h2>
+          </div>
+        </div>
+
+        <div className="access-matrix">
+          <div className="access-matrix-head">
+            <span>Area</span>
+            {Object.entries(roles).map(([role, label]) => (
+              <strong key={role}>{label}</strong>
+            ))}
+          </div>
+
+          {permissionMatrix.map((item) => (
+            <div className="access-matrix-row" key={item.path}>
+              <strong>{item.label}</strong>
+              {Object.keys(roles).map((role) => {
+                const allowed = item.roles.includes(role);
+                return (
+                  <span className={allowed ? "allowed" : "blocked"} key={role}>
+                    {allowed ? <CheckCircle2 size={18} /> : <CircleMinus size={18} />}
+                  </span>
+                );
+              })}
+            </div>
+          ))}
         </div>
       </section>
 

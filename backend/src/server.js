@@ -13,6 +13,7 @@ const assinaturaRoutes = require("./routes/assinaturaRoutes");
 const empresaRoutes = require("./routes/empresaRoutes");
 const whatsappRoutes = require("./routes/whatsappRoutes");
 const publicAgendamentoRoutes = require("./routes/publicAgendamentoRoutes");
+const usuarioRoutes = require("./routes/usuarioRoutes");
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api/assinatura", assinaturaRoutes);
 app.use("/api/empresa", empresaRoutes);
 app.use("/api/whatsapp", whatsappRoutes);
 app.use("/api/public/agendar", publicAgendamentoRoutes);
+app.use("/api/usuarios", usuarioRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

@@ -11,10 +11,10 @@ import {
   Scissors,
   ShieldCheck,
   Users,
-  Wrench,
-  Zap
+  Wrench
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { canAccess, firstAllowedPath, normalizeRole, roles } from "../config/permissions.js";
 
 const navigation = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard },
@@ -65,8 +65,11 @@ function initials(name = "Usuario") {
 export default function AppLayout() {
   const { usuario, logout } = useAuth();
   const location = useLocation();
+  const visibleNavigation = navigation.filter((item) => canAccess(usuario?.tipo, item.to));
+  const userRole = normalizeRole(usuario?.tipo);
   const title = titles[location.pathname] || "AgendaFlex";
   const subtitle = subtitles[location.pathname] || "Gestao simples para sua rotina de agendamentos.";
+  const homePath = firstAllowedPath(usuario?.tipo);
 
   return (
     <div className="workspace-shell">
@@ -82,16 +85,8 @@ export default function AppLayout() {
             </div>
           </div>
 
-          <div className="workspace-quick-card">
-            <Zap size={18} />
-            <div>
-              <strong>Operacao online</strong>
-              <span>Dados em nuvem e rotina centralizada.</span>
-            </div>
-          </div>
-
           <nav className="workspace-nav" aria-label="Navegacao principal">
-            {navigation.map((item) => {
+            {visibleNavigation.map((item) => {
               const Icon = item.icon;
               return (
                 <NavLink key={item.to} to={item.to} end={item.to === "/app"}>
@@ -105,7 +100,7 @@ export default function AppLayout() {
           <div className="sidebar-footer">
             <div className="workspace-avatar">{initials(usuario?.nome)}</div>
             <div>
-              <span>{usuario?.tipo || "ADMIN"}</span>
+              <span>{roles[userRole] || usuario?.tipo || "Usuario"}</span>
               <strong>{usuario?.nome || "Usuario"}</strong>
             </div>
             <button className="icon-button" onClick={logout} title="Sair" type="button">
@@ -121,16 +116,14 @@ export default function AppLayout() {
               <h1>{title}</h1>
               <p>{subtitle}</p>
             </div>
-            <div className="workspace-user">
-              <div className="workspace-avatar">{initials(usuario?.nome)}</div>
-              <div>
-                <span>{usuario?.tipo || "ADMIN"}</span>
-                <strong>{usuario?.nome || "Usuario"}</strong>
-              </div>
-              <button className="icon-button" onClick={logout} title="Sair" type="button">
-                <LogOut size={18} />
-              </button>
-            </div>
+            {location.pathname !== homePath && (
+              <NavLink className="outline-button topbar-home-link" to={homePath}>
+                Minha area
+              </NavLink>
+            )}
+            <button className="icon-button" onClick={logout} title="Sair" type="button">
+              <LogOut size={18} />
+            </button>
           </header>
 
           <main className="workspace-main">

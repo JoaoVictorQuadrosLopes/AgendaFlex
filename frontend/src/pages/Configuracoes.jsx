@@ -1,7 +1,21 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Bell, Building2, Cloud, Copy, ExternalLink, MessageSquareText, Save, ShieldCheck } from "lucide-react";
+import {
+  Bell,
+  Building2,
+  Cloud,
+  Copy,
+  ExternalLink,
+  MessageSquareText,
+  Pencil,
+  Save,
+  ShieldCheck,
+  Trash2,
+  UserPlus,
+  X
+} from "lucide-react";
 import FormField from "../components/FormField.jsx";
 import api from "../services/api.js";
+import { roleDescriptions, roles } from "../config/permissions.js";
 
 const initialForm = {
   id: "",
@@ -32,6 +46,9 @@ const segmentos = [
 
 export default function Configuracoes() {
   const [form, setForm] = useState(initialForm);
+  const [usuarios, setUsuarios] = useState([]);
+  const [accessForm, setAccessForm] = useState({ nome: "", email: "", senha: "", tipo: "RECEPCAO" });
+  const [editingAccessId, setEditingAccessId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
@@ -56,7 +73,7 @@ export default function Configuracoes() {
 
     async function carregarEmpresa() {
       try {
-        const { data } = await api.get("/empresa");
+        const [{ data }, usuariosRes] = await Promise.all([api.get("/empresa"), api.get("/usuarios")]);
 
         if (!mounted) return;
 
@@ -75,6 +92,7 @@ export default function Configuracoes() {
           whatsapp_phone_number_id: data.whatsapp_phone_number_id || "",
           agendamento_slug: data.agendamento_slug || ""
         });
+        setUsuarios(usuariosRes.data);
       } catch (error) {
         if (mounted) {
           setErro(error.response?.data?.mensagem || "Nao foi possivel carregar as configuracoes.");
@@ -97,6 +115,74 @@ export default function Configuracoes() {
     setForm((current) => ({ ...current, [field]: value }));
     setErro("");
     setSucesso("");
+  }
+
+  function updateAccess(field, value) {
+    setAccessForm((current) => ({ ...current, [field]: value }));
+    setErro("");
+    setSucesso("");
+  }
+
+  function limparAccessForm() {
+    setEditingAccessId(null);
+    setAccessForm({ nome: "", email: "", senha: "", tipo: "RECEPCAO" });
+  }
+
+  function editarAcesso(usuario) {
+    setEditingAccessId(usuario.id);
+    setAccessForm({
+      nome: usuario.nome || "",
+      email: usuario.email || "",
+      senha: "",
+      tipo: usuario.tipo || "PROFISSIONAL"
+    });
+  }
+
+  async function salvarAcesso(event) {
+    event.preventDefault();
+    setSaving(true);
+    setErro("");
+    setSucesso("");
+
+    try {
+      if (editingAccessId) {
+        const payload = { ...accessForm };
+        if (!payload.senha) {
+          delete payload.senha;
+        }
+
+        await api.put(`/usuarios/${editingAccessId}`, payload);
+        setSucesso("Acesso atualizado com sucesso.");
+      } else {
+        await api.post("/usuarios", accessForm);
+        setSucesso("Usuario criado com sucesso.");
+      }
+
+      limparAccessForm();
+      const { data } = await api.get("/usuarios");
+      setUsuarios(data);
+    } catch (error) {
+      setErro(error.response?.data?.mensagem || "Nao foi possivel salvar o acesso.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function excluirAcesso(id) {
+    if (!window.confirm("Excluir este acesso?")) {
+      return;
+    }
+
+    setErro("");
+    setSucesso("");
+
+    try {
+      await api.delete(`/usuarios/${id}`);
+      setUsuarios((current) => current.filter((usuario) => usuario.id !== id));
+      setSucesso("Acesso removido com sucesso.");
+    } catch (error) {
+      setErro(error.response?.data?.mensagem || "Nao foi possivel remover o acesso.");
+    }
   }
 
   async function salvar(event) {

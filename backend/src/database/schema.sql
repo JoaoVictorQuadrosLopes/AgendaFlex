@@ -33,6 +33,23 @@ CREATE TABLE IF NOT EXISTS usuarios (
   criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+UPDATE usuarios
+SET tipo = UPPER(tipo)
+WHERE tipo IS NOT NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'usuarios_tipo_check'
+  ) THEN
+    ALTER TABLE usuarios
+      ADD CONSTRAINT usuarios_tipo_check
+      CHECK (tipo IN ('ADMIN', 'RECEPCAO', 'PROFISSIONAL'));
+  END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS clientes (
   id SERIAL PRIMARY KEY,
   empresa_id INTEGER REFERENCES empresas(id) ON DELETE CASCADE,

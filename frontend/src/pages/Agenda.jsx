@@ -64,6 +64,7 @@ function moedaBR(valor) {
 }
 
 export default function Agenda() {
+  const [abaAgenda, setAbaAgenda] = useState("agenda");
   const [dataSelecionada, setDataSelecionada] = useState(hojeISO());
   const [statusFiltro, setStatusFiltro] = useState("");
   const [origemFiltro, setOrigemFiltro] = useState("");
@@ -220,6 +221,7 @@ export default function Agenda() {
     setErro("");
     setSucesso("");
     setUsarNovoCliente(false);
+    setAbaAgenda("form");
     setEditandoId(agendamento.id);
     setForm({
       cliente_id: agendamento.cliente_id || "",
@@ -303,6 +305,7 @@ export default function Agenda() {
       }
 
       limparFormulario();
+      setAbaAgenda("agenda");
       setDataSelecionada(form.data_agendamento);
       setSucesso(editandoId ? "Agendamento atualizado com sucesso." : "Agendamento criado com sucesso.");
       carregarAgenda();
@@ -377,8 +380,31 @@ export default function Agenda() {
   }, [agendamentosSemana, diasSemana]);
 
   return (
-    <section className="split-view agenda-view">
-      <form className="panel compact-form" onSubmit={salvar}>
+    <section className="content-stack agenda-clean-view">
+      <div className="view-switcher">
+        <div className="segmented-control">
+          <button type="button" className={abaAgenda === "agenda" ? "active" : ""} onClick={() => setAbaAgenda("agenda")}>
+            Agenda
+          </button>
+          <button type="button" className={abaAgenda === "form" ? "active" : ""} onClick={() => setAbaAgenda("form")}>
+            {editandoId ? "Editar" : "Novo"}
+          </button>
+        </div>
+        <button
+          className="primary-button compact-action"
+          type="button"
+          onClick={() => {
+            limparFormulario();
+            setAbaAgenda("form");
+          }}
+        >
+          <Plus size={18} />
+          Novo agendamento
+        </button>
+      </div>
+
+      {abaAgenda === "form" && (
+      <form className="panel compact-form agenda-form-panel" onSubmit={salvar}>
         <div className="panel-header">
           <h2>{editandoId ? "Editar agendamento" : "Novo agendamento"}</h2>
           {editandoId && (
@@ -478,8 +504,10 @@ export default function Agenda() {
           {editandoId ? "Salvar alteracoes" : "Agendar"}
         </button>
       </form>
+      )}
 
-      <section className="panel">
+      {abaAgenda === "agenda" && (
+      <section className="panel agenda-board-panel">
         <div className="panel-header">
           <div>
             <span className="eyebrow">Agenda do dia</span>
@@ -617,6 +645,7 @@ export default function Agenda() {
             </div>
         )}
       </section>
+      )}
     </section>
   );
 }
