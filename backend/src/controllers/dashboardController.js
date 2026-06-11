@@ -3,12 +3,13 @@ const pool = require("../config/database");
 async function resumo(req, res) {
   const empresaId = req.usuario.empresa_id;
 
-  const [hoje, semana, clientes, profissionais, faturamento, assinatura, graficoSemana] = await Promise.all([
+  const [hoje, semana, clientes, profissionais, faturamento, assinatura, graficoSemana, onlineSemana, proximosOnline] = await Promise.all([
     pool.query(
       `SELECT
          COUNT(*)::int AS total,
          COUNT(*) FILTER (WHERE status = 'CONFIRMADO')::int AS confirmados,
-         COUNT(*) FILTER (WHERE status = 'CANCELADO')::int AS cancelados
+         COUNT(*) FILTER (WHERE status = 'CANCELADO')::int AS cancelados,
+         COUNT(*) FILTER (WHERE origem = 'ONLINE')::int AS online
        FROM agendamentos
        WHERE empresa_id = $1 AND data_agendamento = CURRENT_DATE`,
       [empresaId]
@@ -47,6 +48,28 @@ async function resumo(req, res) {
        GROUP BY dia
        ORDER BY dia`,
       [empresaId]
+    ),
+    pool.query(
+      `SELECT COUNT(*)::int AS total
+       FROM agendamentos
+       WHERE empresa_id = $1
+         AND origem = 'ONLINE'
+         AND data_agendamento BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '7 days'`,
+      [empresaId]
+    ),
+    pool.query(
+      `SELECT a.id, a.data_agendamento, a.hora_inicio, a.status, a.origem,
+              c.nome AS cliente_nome, p.nome AS profissional_nome, s.nome AS servico_nome
+       FROM agendamentos a
+       LEFT JOIN clientes c ON c.id = a.cliente_id
+       LEFT JOIN profissionais p ON p.id = a.profissional_id
+       LEFT JOIN servicos s ON s.id = a.servico_id
+       WHERE a.empresa_id = $1
+         AND a.origem = 'ONLINE'
+         AND a.data_agendamento >= CURRENT_DATE
+       ORDER BY a.data_agendamento, a.hora_inicio
+       LIMIT 5`,
+      [empresaId]
     )
   ]);
 
@@ -57,7 +80,9 @@ async function resumo(req, res) {
     profissionais: profissionais.rows[0].total,
     faturamento_previsto: faturamento.rows[0].previsto,
     assinatura: assinatura.rows[0] || null,
-    grafico_semana: graficoSemana.rows
+    grafico_semana: graficoSemana.rows,
+    online_semana: onlineSemana.rows[0].total,
+    proximos_online: proximosOnline.rows
   });
 }
 

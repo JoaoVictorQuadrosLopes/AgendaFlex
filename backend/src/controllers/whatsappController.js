@@ -191,8 +191,8 @@ async function criarAgendamentoConfirmado(empresaId, dados) {
 
     const agendamento = await client.query(
       `INSERT INTO agendamentos
-         (empresa_id, cliente_id, profissional_id, servico_id, data_agendamento, hora_inicio, hora_fim, status, observacoes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'CONFIRMADO', $8)
+         (empresa_id, cliente_id, profissional_id, servico_id, data_agendamento, hora_inicio, hora_fim, status, origem, observacoes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'CONFIRMADO', 'WHATSAPP', $8)
        RETURNING *`,
       [
         empresaId,

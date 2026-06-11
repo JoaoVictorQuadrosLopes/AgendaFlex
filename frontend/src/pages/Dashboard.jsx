@@ -1,5 +1,6 @@
 import React from "react";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import {
   ArrowUpRight,
@@ -12,6 +13,8 @@ import {
   Users
 } from "lucide-react";
 import api from "../services/api";
+import OriginBadge from "../components/OriginBadge.jsx";
+import StatusBadge from "../components/StatusBadge.jsx";
 
 const emptyWeekData = [
   { name: "Seg", agendamentos: 4 },
@@ -36,10 +39,12 @@ export default function Dashboard() {
     { label: "Hoje", value: resumo?.hoje?.total ?? 0, icon: CalendarDays },
     { label: "Confirmados", value: resumo?.hoje?.confirmados ?? 0, icon: CheckCircle2 },
     { label: "Clientes", value: resumo?.clientes ?? 0, icon: Users },
+    { label: "Online", value: resumo?.hoje?.online ?? 0, icon: MessageCircle },
     { label: "Previsto", value: `R$ ${resumo?.faturamento_previsto ?? "0.00"}`, icon: CircleDollarSign },
     { label: "Plano", value: resumo?.assinatura?.plano ?? "starter", icon: CreditCard }
   ];
   const chartData = resumo?.grafico_semana?.length ? resumo.grafico_semana : emptyWeekData;
+  const proximosOnline = resumo?.proximos_online || [];
 
   return (
     <section className="content-stack">
@@ -51,12 +56,12 @@ export default function Dashboard() {
           <h2>{resumo?.hoje?.total ?? 0} atendimentos na agenda</h2>
           <p>
             {resumo?.hoje?.confirmados ?? 0} confirmados hoje. O restante da operacao aparece abaixo com clientes,
-            previsao de faturamento e assinatura.
+            previsao de faturamento e pedidos recebidos pelo agendamento online.
           </p>
         </div>
         <div className="dashboard-hero-action">
           <ArrowUpRight size={20} />
-          <span>Semana em movimento</span>
+          <span>{resumo?.online_semana ?? 0} online nos proximos 7 dias</span>
         </div>
       </section>
 
@@ -97,6 +102,43 @@ export default function Dashboard() {
             <span>O backend impede dois atendimentos no mesmo horario para o mesmo profissional.</span>
           </div>
         </article>
+      </section>
+
+      <section className="panel online-queue-panel">
+        <div className="panel-header">
+          <div>
+            <span className="eyebrow">Link publico</span>
+            <h2>Agendamentos recebidos online</h2>
+          </div>
+          <Link className="outline-button" to="/agendar/agendaflex" target="_blank">
+            Abrir link
+          </Link>
+        </div>
+
+        {proximosOnline.length === 0 ? (
+          <div className="empty-state compact">
+            <strong>Nenhum pedido online futuro</strong>
+            <span>Quando alguem agendar pelo site, o horario aparece aqui automaticamente.</span>
+          </div>
+        ) : (
+          <div className="online-queue-list">
+            {proximosOnline.map((item) => (
+              <article key={item.id}>
+                <div>
+                  <strong>{item.cliente_nome || "Cliente"}</strong>
+                  <span>
+                    {item.servico_nome || "Servico"} com {item.profissional_nome || "profissional"}
+                  </span>
+                </div>
+                <div className="online-queue-meta">
+                  <span>{String(item.data_agendamento).slice(0, 10)} as {String(item.hora_inicio).slice(0, 5)}</span>
+                  <OriginBadge origem={item.origem} />
+                  <StatusBadge status={item.status} />
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="panel">
