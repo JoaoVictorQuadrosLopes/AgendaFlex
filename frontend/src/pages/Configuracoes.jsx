@@ -14,9 +14,11 @@ import {
   X
 } from "lucide-react";
 import FormField from "../components/FormField.jsx";
+import PlanLimitAlert from "../components/PlanLimitAlert.jsx";
 import api from "../services/api.js";
 import { roleDescriptions, roles } from "../config/permissions.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { getApiErrorMessage, isPlanLimitError } from "../utils/apiErrors.js";
 
 const initialForm = {
   id: "",
@@ -54,6 +56,8 @@ export default function Configuracoes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
+  const [accessErro, setAccessErro] = useState("");
+  const [limitError, setLimitError] = useState(null);
   const [sucesso, setSucesso] = useState("");
 
   const resumo = useMemo(
@@ -121,7 +125,7 @@ export default function Configuracoes() {
 
   function updateAccess(field, value) {
     setAccessForm((current) => ({ ...current, [field]: value }));
-    setErro("");
+    setAccessErro("");
     setSucesso("");
   }
 
@@ -143,7 +147,8 @@ export default function Configuracoes() {
   async function salvarAcesso(event) {
     event.preventDefault();
     setSaving(true);
-    setErro("");
+    setAccessErro("");
+    setLimitError(null);
     setSucesso("");
 
     try {
@@ -167,7 +172,10 @@ export default function Configuracoes() {
       const { data } = await api.get("/usuarios");
       setUsuarios(data);
     } catch (error) {
-      setErro(error.response?.data?.mensagem || "Nao foi possivel salvar o acesso.");
+      if (isPlanLimitError(error)) {
+        setLimitError(error);
+      }
+      setAccessErro(getApiErrorMessage(error, "Nao foi possivel salvar o acesso."));
     } finally {
       setSaving(false);
     }
@@ -409,6 +417,8 @@ export default function Configuracoes() {
 
         <div className="access-management-grid">
           <form className="access-form" onSubmit={salvarAcesso}>
+            {limitError && <PlanLimitAlert error={limitError} />}
+            {accessErro && !limitError && <div className="alert-error">{accessErro}</div>}
             <div className="form-grid two">
               <FormField label="Nome">
                 <input value={accessForm.nome} onChange={(event) => updateAccess("nome", event.target.value)} />

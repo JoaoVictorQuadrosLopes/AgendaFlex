@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Check, CreditCard, Crown, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Check, CreditCard, Crown, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
 import { plans } from "../data/plans.js";
 import api from "../services/api.js";
 
@@ -92,6 +92,7 @@ export default function Assinatura() {
 
     return { key, label, limit, used, percent };
   });
+  const usageWarning = usageRows.find((item) => item.limit && item.percent >= 85);
 
   return (
     <section className="content-stack">
@@ -126,7 +127,7 @@ export default function Assinatura() {
 
           <div className="plan-usage-grid">
             {usageRows.map((item) => (
-              <article className="plan-usage-item" key={item.key}>
+              <article className={`plan-usage-item ${item.limit && item.percent >= 85 ? "near-limit" : ""}`} key={item.key}>
                 <div>
                   <strong>{item.label}</strong>
                   <span>
@@ -139,6 +140,16 @@ export default function Assinatura() {
               </article>
             ))}
           </div>
+
+          {usageWarning && (
+            <div className="usage-upgrade-note">
+              <AlertTriangle size={20} />
+              <div>
+                <strong>{usageWarning.label} perto do limite</strong>
+                <span>Considere mudar de plano antes que novos cadastros ou agendamentos sejam bloqueados.</span>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -196,7 +207,7 @@ export default function Assinatura() {
         <div>
           <strong>Pagamento recorrente via Mercado Pago</strong>
           <span>
-            Agora a contratação dos planos pagos cria uma assinatura recorrente no Mercado Pago.
+            Agora a contratacao dos planos pagos cria uma assinatura recorrente no Mercado Pago.
             Para webhooks funcionarem automaticamente, publique o backend e configure `API_PUBLIC_URL`.
           </span>
         </div>

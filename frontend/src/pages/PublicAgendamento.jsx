@@ -1,7 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, CalendarDays, CheckCircle2, Clock, Phone, Sparkles, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Mail,
+  MapPin,
+  Phone,
+  Sparkles,
+  UserRound
+} from "lucide-react";
 import { useParams } from "react-router-dom";
 import api from "../services/api.js";
+import { getApiErrorMessage, isPlanLimitError } from "../utils/apiErrors.js";
 
 const hoje = new Date().toISOString().slice(0, 10);
 
@@ -11,6 +22,20 @@ const formInicial = {
   cliente_email: "",
   observacoes: ""
 };
+
+function moedaBR(valor) {
+  const numero = Number(valor || 0);
+  return numero.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function dataBR(valor) {
+  if (!valor) return "";
+  return new Date(`${valor}T00:00:00`).toLocaleDateString("pt-BR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit"
+  });
+}
 
 export default function PublicAgendamento() {
   const { empresaId } = useParams();
@@ -31,10 +56,14 @@ export default function PublicAgendamento() {
     () => dados?.servicos.find((servico) => String(servico.id) === String(servicoId)),
     [dados, servicoId]
   );
+
   const profissionalSelecionado = useMemo(
     () => dados?.profissionais.find((profissional) => String(profissional.id) === String(profissionalId)),
     [dados, profissionalId]
   );
+
+  const temBaseParaAgendar = Boolean(dados?.servicos.length && dados?.profissionais.length);
+  const horarioSelecionado = horarios.find((horario) => horario.hora_inicio === horaSelecionada);
 
   useEffect(() => {
     async function carregar() {
@@ -92,6 +121,11 @@ export default function PublicAgendamento() {
     event.preventDefault();
     setErro("");
 
+    if (!temBaseParaAgendar) {
+      setErro("Esta agenda ainda nao esta pronta para receber reservas online.");
+      return;
+    }
+
     if (!horaSelecionada) {
       setErro("Escolha um horario para continuar.");
       return;
@@ -109,7 +143,12 @@ export default function PublicAgendamento() {
       });
       setConfirmado(response.agendamento);
     } catch (error) {
-      setErro(error.response?.data?.mensagem || "Nao foi possivel criar o agendamento.");
+      if (isPlanLimitError(error)) {
+        setErro("A agenda online desta empresa atingiu o limite mensal. Entre em contato para reservar seu horario.");
+        return;
+      }
+
+      setErro(getApiErrorMessage(error, "Nao foi possivel criar o agendamento."));
     } finally {
       setSalvando(false);
     }
@@ -146,7 +185,7 @@ export default function PublicAgendamento() {
           <span className="eyebrow">Agendamento recebido</span>
           <h1>{dados.empresa.nome}</h1>
           <p>
-            {confirmado.cliente_nome}, seu horario foi reservado para {data} as{" "}
+            {confirmado.cliente_nome}, seu horario foi reservado para {dataBR(data)} as{" "}
             {String(confirmado.hora_inicio).slice(0, 5)}.
           </p>
           <div className="confirmation-summary">
@@ -169,8 +208,23 @@ export default function PublicAgendamento() {
           <span className="eyebrow">Agendamento online</span>
           <h1>{dados.empresa.nome}</h1>
           <p>
-            Escolha um servico, selecione um horario disponivel e deixe seus dados para reservar o atendimento.
+            Reserve seu horario em poucos passos, com servicos, profissionais e disponibilidade atualizados pela
+            empresa.
           </p>
+          <div className="public-hero-meta">
+            {dados.empresa.endereco && (
+              <span>
+                <MapPin size={16} />
+                {dados.empresa.endereco}
+              </span>
+            )}
+            {dados.empresa.telefone && (
+              <span>
+                <Phone size={16} />
+                {dados.empresa.telefone}
+              </span>
+            )}
+          </div>
         </div>
         <div className="public-company-chip">
           <Sparkles size={18} />
@@ -178,104 +232,153 @@ export default function PublicAgendamento() {
         </div>
       </section>
 
-      <form className="public-schedule-card" onSubmit={agendar}>
-        {erro && <div className="alert-error">{erro}</div>}
+      <form className="public-booking-shell" onSubmit={agendar}>
+        <section className="public-schedule-card">
+          {erro && <div className="alert-error">{erro}</div>}
 
-        <div className="public-section">
-          <div className="public-section-title">
-            <CalendarDays size={20} />
-            <h2>Escolha o atendimento</h2>
-          </div>
-          <div className="public-grid">
-            <label>
-              <span>{dados.empresa.termo_servico || "Servico"}</span>
-              <select value={servicoId} onChange={(event) => setServicoId(event.target.value)}>
-                {dados.servicos.map((servico) => (
-                  <option key={servico.id} value={servico.id}>
-                    {servico.nome}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>{dados.empresa.termo_profissional || "Profissional"}</span>
-              <select value={profissionalId} onChange={(event) => setProfissionalId(event.target.value)}>
-                {dados.profissionais.map((profissional) => (
-                  <option key={profissional.id} value={profissional.id}>
-                    {profissional.nome}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Data</span>
-              <input type="date" min={hoje} value={data} onChange={(event) => setData(event.target.value)} />
-            </label>
-          </div>
-        </div>
+          {!temBaseParaAgendar && (
+            <div className="soft-alert">
+              Esta empresa ainda precisa cadastrar servicos e profissionais para liberar o agendamento online.
+            </div>
+          )}
 
-        <div className="public-section">
-          <div className="public-section-title">
-            <Clock size={20} />
-            <h2>Horario disponivel</h2>
-          </div>
-          <div className="time-grid">
-            {loadingHorarios ? (
-              <span className="muted">Carregando horarios...</span>
-            ) : (
-              horarios.map((horario) => (
+          <div className="public-section">
+            <div className="public-section-title">
+              <CalendarDays size={20} />
+              <h2>Escolha o atendimento</h2>
+            </div>
+            <div className="public-choice-grid">
+              {dados.servicos.map((servico) => (
                 <button
-                  key={horario.hora_inicio}
-                  className={`time-option ${horaSelecionada === horario.hora_inicio ? "selected" : ""}`}
+                  className={`public-choice-card ${String(servico.id) === String(servicoId) ? "selected" : ""}`}
+                  key={servico.id}
                   type="button"
-                  disabled={!horario.disponivel}
-                  onClick={() => setHoraSelecionada(horario.hora_inicio)}
+                  onClick={() => setServicoId(servico.id)}
                 >
-                  {horario.hora_inicio}
+                  <strong>{servico.nome}</strong>
+                  <span>{servico.duracao_minutos || 30} min</span>
+                  <small>{moedaBR(servico.valor)}</small>
                 </button>
-              ))
-            )}
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="public-section">
-          <div className="public-section-title">
-            <UserRound size={20} />
-            <h2>Seus dados</h2>
+          <div className="public-section">
+            <div className="public-section-title">
+              <UserRound size={20} />
+              <h2>Escolha {dados.empresa.termo_profissional || "profissional"}</h2>
+            </div>
+            <div className="public-choice-grid professional">
+              {dados.profissionais.map((profissional) => (
+                <button
+                  className={`public-choice-card ${String(profissional.id) === String(profissionalId) ? "selected" : ""}`}
+                  key={profissional.id}
+                  type="button"
+                  onClick={() => setProfissionalId(profissional.id)}
+                >
+                  <strong>{profissional.nome}</strong>
+                  <span>{profissional.funcao || dados.empresa.termo_profissional || "Atendimento"}</span>
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="public-grid">
-            <label>
-              <span>Nome</span>
-              <input value={form.cliente_nome} onChange={(event) => update("cliente_nome", event.target.value)} />
-            </label>
-            <label>
-              <span>Telefone</span>
-              <input value={form.cliente_telefone} onChange={(event) => update("cliente_telefone", event.target.value)} />
-            </label>
-            <label>
-              <span>E-mail opcional</span>
-              <input type="email" value={form.cliente_email} onChange={(event) => update("cliente_email", event.target.value)} />
-            </label>
-          </div>
-          <label className="public-textarea">
-            <span>Observacoes</span>
-            <textarea rows="3" value={form.observacoes} onChange={(event) => update("observacoes", event.target.value)} />
-          </label>
-        </div>
 
-        <aside className="public-resume">
-          <Phone size={19} />
-          <div>
-            <strong>{servicoSelecionado?.nome || "Servico"}</strong>
-            <span>
-              {profissionalSelecionado?.nome || "Profissional"} · {data} · {horaSelecionada || "Escolha um horario"}
-            </span>
+          <div className="public-section">
+            <div className="public-section-title">
+              <Clock size={20} />
+              <h2>Data e horario</h2>
+            </div>
+            <div className="public-grid date-grid">
+              <label>
+                <span>Data</span>
+                <input type="date" min={hoje} value={data} onChange={(event) => setData(event.target.value)} />
+              </label>
+            </div>
+            <div className="time-grid">
+              {loadingHorarios ? (
+                <span className="muted">Carregando horarios...</span>
+              ) : horarios.length === 0 ? (
+                <span className="muted">Nenhum horario para esta combinacao.</span>
+              ) : (
+                horarios.map((horario) => (
+                  <button
+                    key={horario.hora_inicio}
+                    className={`time-option ${horaSelecionada === horario.hora_inicio ? "selected" : ""}`}
+                    type="button"
+                    disabled={!horario.disponivel}
+                    onClick={() => setHoraSelecionada(horario.hora_inicio)}
+                  >
+                    {horario.hora_inicio}
+                  </button>
+                ))
+              )}
+            </div>
           </div>
+
+          <div className="public-section">
+            <div className="public-section-title">
+              <Mail size={20} />
+              <h2>Seus dados</h2>
+            </div>
+            <div className="public-grid">
+              <label>
+                <span>Nome</span>
+                <input value={form.cliente_nome} onChange={(event) => update("cliente_nome", event.target.value)} />
+              </label>
+              <label>
+                <span>Telefone</span>
+                <input
+                  value={form.cliente_telefone}
+                  onChange={(event) => update("cliente_telefone", event.target.value)}
+                />
+              </label>
+              <label>
+                <span>E-mail opcional</span>
+                <input
+                  type="email"
+                  value={form.cliente_email}
+                  onChange={(event) => update("cliente_email", event.target.value)}
+                />
+              </label>
+            </div>
+            <label className="public-textarea">
+              <span>Observacoes</span>
+              <textarea
+                rows="3"
+                value={form.observacoes}
+                onChange={(event) => update("observacoes", event.target.value)}
+              />
+            </label>
+          </div>
+
+          <button className="primary-button public-submit" type="submit" disabled={salvando}>
+            {salvando ? "Reservando..." : "Reservar horario"}
+          </button>
+        </section>
+
+        <aside className="public-summary-card">
+          <span className="eyebrow">Resumo</span>
+          <h2>{servicoSelecionado?.nome || "Escolha um servico"}</h2>
+          <div className="public-summary-list">
+            <div>
+              <Clock size={18} />
+              <span>
+                {servicoSelecionado?.duracao_minutos || 30} min - {moedaBR(servicoSelecionado?.valor)}
+              </span>
+            </div>
+            <div>
+              <UserRound size={18} />
+              <span>{profissionalSelecionado?.nome || "Escolha um profissional"}</span>
+            </div>
+            <div>
+              <CalendarDays size={18} />
+              <span>
+                {dataBR(data)} - {horarioSelecionado?.hora_inicio || "Escolha um horario"}
+              </span>
+            </div>
+          </div>
+          <p>Depois de reservar, a empresa recebe seu pedido na agenda e pode confirmar o atendimento.</p>
         </aside>
-
-        <button className="primary-button public-submit" type="submit" disabled={salvando}>
-          {salvando ? "Reservando..." : "Reservar horario"}
-        </button>
       </form>
     </main>
   );

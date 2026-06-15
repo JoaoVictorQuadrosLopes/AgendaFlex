@@ -5,7 +5,9 @@ import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
 import OriginBadge from "../components/OriginBadge.jsx";
+import PlanLimitAlert from "../components/PlanLimitAlert.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
+import { getApiErrorMessage, isPlanLimitError } from "../utils/apiErrors.js";
 
 const statusOptions = ["AGENDADO", "CONFIRMADO", "EM_ATENDIMENTO", "FINALIZADO", "CANCELADO", "NAO_COMPARECEU"];
 const origemOptions = ["MANUAL", "ONLINE", "WHATSAPP"];
@@ -78,6 +80,7 @@ export default function Agenda() {
   const [profissionais, setProfissionais] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [erro, setErro] = useState("");
+  const [limitError, setLimitError] = useState(null);
   const [sucesso, setSucesso] = useState("");
   const [editandoId, setEditandoId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -219,6 +222,7 @@ export default function Agenda() {
 
   function iniciarEdicao(agendamento) {
     setErro("");
+    setLimitError(null);
     setSucesso("");
     setUsarNovoCliente(false);
     setAbaAgenda("form");
@@ -312,7 +316,10 @@ export default function Agenda() {
       carregarSemana();
       carregarAgendamentosDia(form.data_agendamento);
     } catch (error) {
-      setErro(error.response?.data?.mensagem || "Nao foi possivel salvar o agendamento");
+      if (isPlanLimitError(error)) {
+        setLimitError(error);
+      }
+      setErro(getApiErrorMessage(error, "Nao foi possivel salvar o agendamento"));
     }
   }
 
@@ -497,7 +504,8 @@ export default function Agenda() {
             </span>
           </div>
         )}
-        {erro && <div className="alert-error">{erro}</div>}
+        {limitError && <PlanLimitAlert error={limitError} />}
+        {erro && !limitError && <div className="alert-error">{erro}</div>}
         {sucesso && <div className="soft-alert">{sucesso}</div>}
         <button className="primary-button" type="submit" disabled={Boolean(conflitoPrevisto)}>
           <Plus size={18} />

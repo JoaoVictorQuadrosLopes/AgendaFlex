@@ -4,11 +4,15 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
+import PlanLimitAlert from "../components/PlanLimitAlert.jsx";
+import { getApiErrorMessage, isPlanLimitError } from "../utils/apiErrors.js";
 
 export default function Profissionais() {
   const [profissionais, setProfissionais] = useState([]);
   const [form, setForm] = useState({ nome: "", telefone: "", email: "", funcao: "" });
   const [editingId, setEditingId] = useState(null);
+  const [erro, setErro] = useState("");
+  const [limitError, setLimitError] = useState(null);
 
   useEffect(() => {
     carregar();
@@ -21,13 +25,23 @@ export default function Profissionais() {
 
   async function salvar(event) {
     event.preventDefault();
-    if (editingId) {
-      await api.put(`/profissionais/${editingId}`, { ...form, ativo: true });
-    } else {
-      await api.post("/profissionais", form);
+    setErro("");
+    setLimitError(null);
+
+    try {
+      if (editingId) {
+        await api.put(`/profissionais/${editingId}`, { ...form, ativo: true });
+      } else {
+        await api.post("/profissionais", form);
+      }
+      limparFormulario();
+      carregar();
+    } catch (error) {
+      if (isPlanLimitError(error)) {
+        setLimitError(error);
+      }
+      setErro(getApiErrorMessage(error, "Nao foi possivel salvar o profissional."));
     }
-    limparFormulario();
-    carregar();
   }
 
   function editar(profissional) {
@@ -69,6 +83,8 @@ export default function Profissionais() {
             </button>
           )}
         </div>
+        {limitError && <PlanLimitAlert error={limitError} />}
+        {erro && !limitError && <div className="alert-error">{erro}</div>}
         <FormField label="Nome">
           <input value={form.nome} onChange={(e) => update("nome", e.target.value)} required />
         </FormField>
