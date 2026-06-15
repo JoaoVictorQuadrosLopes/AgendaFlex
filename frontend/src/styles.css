@@ -4119,6 +4119,92 @@ body {
   background: linear-gradient(90deg, #1f7a8c, #2f9e6f);
 }
 
+.onboarding-panel {
+  display: grid;
+  gap: 18px;
+  border-color: #cfe3ef;
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbfd 100%);
+}
+
+.onboarding-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #e7f5f6;
+  color: #14727b;
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+.onboarding-progress {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e3edf2;
+}
+
+.onboarding-progress span {
+  display: block;
+  height: 100%;
+  min-width: 8px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0f8f9c, #2f9e6f);
+}
+
+.onboarding-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.onboarding-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 116px;
+  padding: 14px;
+  border: 1px solid #dbe7ef;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #183247;
+  text-decoration: none;
+}
+
+.onboarding-step:hover {
+  border-color: #8bc4d1;
+  transform: translateY(-1px);
+}
+
+.onboarding-step > svg:first-child {
+  color: #9aabba;
+  margin-top: 1px;
+}
+
+.onboarding-step.done > svg:first-child {
+  color: #24945f;
+}
+
+.onboarding-step strong,
+.onboarding-step span {
+  display: block;
+}
+
+.onboarding-step span {
+  margin-top: 5px;
+  color: #668096;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.onboarding-step > svg:last-child {
+  color: #8aa0b4;
+}
+
 @media (max-width: 1180px) {
   .weekly-calendar {
     grid-template-columns: repeat(4, minmax(140px, 1fr));
@@ -4131,6 +4217,10 @@ body {
 }
 
 @media (max-width: 980px) {
+  .onboarding-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .workspace-frame {
     grid-template-columns: 1fr;
   }
@@ -4193,6 +4283,10 @@ body {
   }
 
   .schedule-item {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-list {
     grid-template-columns: 1fr;
   }
 

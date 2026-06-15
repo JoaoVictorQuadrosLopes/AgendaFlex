@@ -3,7 +3,19 @@ const pool = require("../config/database");
 async function resumo(req, res) {
   const empresaId = req.usuario.empresa_id;
 
-  const [hoje, semana, clientes, profissionais, faturamento, assinatura, graficoSemana, onlineSemana, proximosOnline] = await Promise.all([
+  const [
+    hoje,
+    semana,
+    clientes,
+    profissionais,
+    servicos,
+    faturamento,
+    assinatura,
+    graficoSemana,
+    onlineSemana,
+    proximosOnline,
+    empresa
+  ] = await Promise.all([
     pool.query(
       `SELECT
          COUNT(*)::int AS total,
@@ -23,6 +35,7 @@ async function resumo(req, res) {
     ),
     pool.query("SELECT COUNT(*)::int AS total FROM clientes WHERE empresa_id = $1", [empresaId]),
     pool.query("SELECT COUNT(*)::int AS total FROM profissionais WHERE empresa_id = $1 AND ativo = true", [empresaId]),
+    pool.query("SELECT COUNT(*)::int AS total FROM servicos WHERE empresa_id = $1 AND ativo IS NOT FALSE", [empresaId]),
     pool.query(
       `SELECT COALESCE(SUM(s.valor), 0)::numeric(10,2) AS previsto
        FROM agendamentos a
@@ -70,19 +83,72 @@ async function resumo(req, res) {
        ORDER BY a.data_agendamento, a.hora_inicio
        LIMIT 5`,
       [empresaId]
+    ),
+    pool.query(
+      `SELECT id, nome, telefone, agendamento_slug, termo_cliente, termo_profissional, termo_servico
+       FROM empresas
+       WHERE id = $1`,
+      [empresaId]
     )
   ]);
+
+  const empresaAtual = empresa.rows[0] || {};
+  const onboardingSteps = [
+    {
+      id: "empresa",
+      label: "Completar dados da empresa",
+      description: "Nome, telefone, termos usados na agenda e identidade basica.",
+      path: "/app/configuracoes",
+      done: Boolean(empresaAtual.nome && empresaAtual.telefone)
+    },
+    {
+      id: "servicos",
+      label: "Cadastrar servicos",
+      description: "Defina duracao, valor e o que pode ser agendado.",
+      path: "/app/servicos",
+      done: servicos.rows[0].total > 0
+    },
+    {
+      id: "profissionais",
+      label: "Cadastrar profissionais",
+      description: "Inclua quem atende para liberar horarios na agenda.",
+      path: "/app/profissionais",
+      done: profissionais.rows[0].total > 0
+    },
+    {
+      id: "link-publico",
+      label: "Configurar link publico",
+      description: "Crie um slug simples para seus clientes agendarem online.",
+      path: "/app/configuracoes",
+      done: Boolean(empresaAtual.agendamento_slug)
+    },
+    {
+      id: "primeiro-agendamento",
+      label: "Criar primeiro agendamento",
+      description: "Valide a rotina criando ou recebendo o primeiro horario.",
+      path: "/app/agenda",
+      done: semana.rows[0].total > 0
+    }
+  ];
 
   res.json({
     hoje: hoje.rows[0],
     semana: semana.rows[0].total,
     clientes: clientes.rows[0].total,
     profissionais: profissionais.rows[0].total,
+    servicos: servicos.rows[0].total,
     faturamento_previsto: faturamento.rows[0].previsto,
     assinatura: assinatura.rows[0] || null,
     grafico_semana: graficoSemana.rows,
     online_semana: onlineSemana.rows[0].total,
-    proximos_online: proximosOnline.rows
+    proximos_online: proximosOnline.rows,
+    link_publico_ref: empresaAtual.agendamento_slug || String(empresaAtual.id || empresaId),
+    onboarding: {
+      completo: onboardingSteps.every((step) => step.done),
+      total: onboardingSteps.length,
+      concluidos: onboardingSteps.filter((step) => step.done).length,
+      steps: onboardingSteps
+    }
   });
 }
 

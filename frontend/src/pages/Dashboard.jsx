@@ -7,6 +7,7 @@ import {
   CalendarDays,
   CheckCircle2,
   CircleDollarSign,
+  Circle,
   CreditCard,
   MessageCircle,
   ShieldCheck,
@@ -45,10 +46,43 @@ export default function Dashboard() {
   ];
   const chartData = resumo?.grafico_semana?.length ? resumo.grafico_semana : emptyWeekData;
   const proximosOnline = resumo?.proximos_online || [];
+  const onboarding = resumo?.onboarding;
+  const publicSchedulePath = `/agendar/${resumo?.link_publico_ref || ""}`;
 
   return (
     <section className="content-stack">
       {erro && <div className="soft-alert">{erro}</div>}
+
+      {onboarding && !onboarding.completo && (
+        <section className="panel onboarding-panel">
+          <div className="panel-header">
+            <div>
+              <span className="eyebrow">Primeiros passos</span>
+              <h2>Configure sua operacao para vender agendamentos</h2>
+            </div>
+            <span className="onboarding-count">
+              {onboarding.concluidos}/{onboarding.total}
+            </span>
+          </div>
+
+          <div className="onboarding-progress" aria-hidden="true">
+            <span style={{ width: `${Math.round((onboarding.concluidos / onboarding.total) * 100)}%` }} />
+          </div>
+
+          <div className="onboarding-list">
+            {onboarding.steps.map((step) => (
+              <Link className={`onboarding-step ${step.done ? "done" : ""}`} to={step.path} key={step.id}>
+                {step.done ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                <div>
+                  <strong>{step.label}</strong>
+                  <span>{step.description}</span>
+                </div>
+                <ArrowUpRight size={18} />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="dashboard-hero">
         <div>
@@ -110,7 +144,7 @@ export default function Dashboard() {
             <span className="eyebrow">Link publico</span>
             <h2>Agendamentos recebidos online</h2>
           </div>
-          <Link className="outline-button" to="/agendar/agendaflex" target="_blank">
+          <Link className="outline-button" to={publicSchedulePath} target="_blank">
             Abrir link
           </Link>
         </div>
