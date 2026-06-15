@@ -388,6 +388,28 @@ export default function Agenda() {
 
   return (
     <section className="content-stack agenda-clean-view">
+      <section className="agenda-command-panel">
+        <div>
+          <span className="eyebrow">Agenda operacional</span>
+          <h2>Controle horarios, encaixes e confirmacoes do dia.</h2>
+          <p>Crie agendamentos, acompanhe a semana e resolva status sem sair da tela principal.</p>
+        </div>
+        <div className="agenda-command-stats" aria-label="Resumo do dia">
+          <article>
+            <strong>{resumoDia.total}</strong>
+            <span>total</span>
+          </article>
+          <article>
+            <strong>{resumoDia.confirmados}</strong>
+            <span>confirmados</span>
+          </article>
+          <article>
+            <strong>{resumoDia.online}</strong>
+            <span>online</span>
+          </article>
+        </div>
+      </section>
+
       <div className="view-switcher">
         <div className="segmented-control">
           <button type="button" className={abaAgenda === "agenda" ? "active" : ""} onClick={() => setAbaAgenda("agenda")}>
@@ -431,6 +453,8 @@ export default function Agenda() {
           </div>
         )}
 
+        <div className="agenda-form-layout">
+          <div className="agenda-form-fields">
         {usarNovoCliente && !editandoId ? (
           <div className="quick-client-box">
             <FormField label="Nome do cliente">
@@ -486,6 +510,9 @@ export default function Agenda() {
         <FormField label="Observacoes">
           <textarea value={form.observacoes} onChange={(e) => update("observacoes", e.target.value)} rows="3" />
         </FormField>
+          </div>
+
+          <aside className="agenda-form-aside">
         <div className="appointment-preview">
           <span>Resumo</span>
           <strong>{resumoAgendamento.horaFim ? `${form.hora_inicio} - ${resumoAgendamento.horaFim}` : form.hora_inicio}</strong>
@@ -511,6 +538,8 @@ export default function Agenda() {
           <Plus size={18} />
           {editandoId ? "Salvar alteracoes" : "Agendar"}
         </button>
+          </aside>
+        </div>
       </form>
       )}
 
