@@ -79,7 +79,8 @@ export default function Landing() {
       </header>
 
       <section className="landing-hero" id="topo">
-        <div className="hero-copy">
+        <div className="landing-hero-inner">
+          <div className="hero-copy">
           <span className="hero-kicker">Agenda, clientes e confirmações em um só lugar</span>
           <h1>Transforme horários soltos em uma operação organizada.</h1>
           <p>
@@ -123,6 +124,7 @@ export default function Landing() {
               <span>retenção dos atendimentos</span>
             </div>
           </div>
+        </div>
         </div>
       </section>
 

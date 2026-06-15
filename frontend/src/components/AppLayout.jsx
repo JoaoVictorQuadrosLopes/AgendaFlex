@@ -11,7 +11,6 @@ import {
   Scissors,
   ShieldCheck,
   Users,
-  Wrench
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { canAccess, firstAllowedPath, normalizeRole, roles } from "../config/permissions.js";
@@ -77,7 +76,7 @@ export default function AppLayout() {
         <aside className="workspace-sidebar">
           <div className="brand">
             <div className="brand-mark">
-              <Wrench size={21} />
+              <CalendarDays size={21} />
             </div>
             <div>
               <strong>AgendaFlex</strong>
