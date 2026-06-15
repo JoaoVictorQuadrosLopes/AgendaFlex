@@ -3,30 +3,40 @@ export const plans = [
     id: "starter",
     name: "Essencial",
     price: "R$ 59",
-    period: "/mês",
-    description: "Para profissionais autônomos e pequenos negócios iniciando a agenda online.",
+    period: "/mes",
+    description: "Para profissionais autonomos e pequenos negocios iniciando a agenda online.",
     highlighted: false,
+    limits: {
+      usuarios: 3,
+      profissionais: 3,
+      agendamentos_mes: 120
+    },
     features: [
-      "1 empresa cadastrada",
-      "Até 3 usuários",
-      "Clientes, serviços e profissionais",
-      "Agenda diária com status",
-      "Confirmação manual por WhatsApp"
+      "Ate 3 usuarios",
+      "Ate 3 profissionais",
+      "Ate 120 agendamentos por mes",
+      "Clientes, servicos e agenda diaria",
+      "Confirmacao manual por WhatsApp"
     ]
   },
   {
     id: "professional",
     name: "Profissional",
     price: "R$ 119",
-    period: "/mês",
-    description: "Para equipes que precisam controlar atendimentos, relatórios e rotina comercial.",
+    period: "/mes",
+    description: "Para equipes que precisam controlar atendimentos, relatorios e rotina comercial.",
     highlighted: true,
+    limits: {
+      usuarios: 10,
+      profissionais: 15,
+      agendamentos_mes: 800
+    },
     features: [
-      "Até 10 usuários",
-      "Agenda por profissional",
-      "Relatórios gerenciais",
-      "Personalização por segmento",
-      "Suporte prioritário"
+      "Ate 10 usuarios",
+      "Ate 15 profissionais",
+      "Ate 800 agendamentos por mes",
+      "Relatorios gerenciais",
+      "Suporte prioritario"
     ]
   },
   {
@@ -34,14 +44,19 @@ export const plans = [
     name: "Empresarial",
     price: "Sob consulta",
     period: "",
-    description: "Para operações com múltiplas unidades, regras específicas e integrações.",
+    description: "Para operacoes com multiplas unidades, regras especificas e integracoes.",
     highlighted: false,
+    limits: {
+      usuarios: null,
+      profissionais: null,
+      agendamentos_mes: null
+    },
     features: [
-      "Usuários e unidades sob demanda",
-      "Permissões por cargo",
-      "Módulos financeiro e estoque",
-      "Integrações com WhatsApp/API",
-      "Implantação acompanhada"
+      "Usuarios e profissionais sob demanda",
+      "Agendamentos mensais sob demanda",
+      "Permissoes por cargo",
+      "Integracoes com WhatsApp/API",
+      "Implantacao acompanhada"
     ]
   }
 ];

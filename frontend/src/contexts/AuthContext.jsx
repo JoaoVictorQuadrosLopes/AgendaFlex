@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 
 const AuthContext = createContext(null);
@@ -29,6 +29,22 @@ export function AuthProvider({ children }) {
     return data;
   }
 
+  async function atualizarSessao() {
+    if (!token) {
+      return null;
+    }
+
+    const { data } = await api.get("/auth/me");
+    localStorage.setItem("agendaflex:usuario", JSON.stringify(data.usuario));
+    setUsuario(data.usuario);
+    return data.usuario;
+  }
+
+  function atualizarUsuario(usuarioAtualizado) {
+    localStorage.setItem("agendaflex:usuario", JSON.stringify(usuarioAtualizado));
+    setUsuario(usuarioAtualizado);
+  }
+
   function persistirSessao(data) {
     localStorage.setItem("agendaflex:token", data.token);
     localStorage.setItem("agendaflex:usuario", JSON.stringify(data.usuario));
@@ -43,8 +59,32 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   }
 
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    let mounted = true;
+
+    api
+      .get("/auth/me")
+      .then(({ data }) => {
+        if (!mounted) return;
+        localStorage.setItem("agendaflex:usuario", JSON.stringify(data.usuario));
+        setUsuario(data.usuario);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        logout();
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [token]);
+
   const value = useMemo(
-    () => ({ usuario, token, autenticado: Boolean(token), login, register, logout }),
+    () => ({ usuario, token, autenticado: Boolean(token), login, register, logout, atualizarSessao, atualizarUsuario }),
     [usuario, token]
   );
 

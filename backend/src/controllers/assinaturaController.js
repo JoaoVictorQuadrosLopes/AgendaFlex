@@ -1,37 +1,11 @@
 const pool = require("../config/database");
-
-const PLANOS = {
-  starter: {
-    plano: "starter",
-    nome: "Essencial",
-    valor_mensal: 59,
-    limites: {
-      usuarios: 3,
-      profissionais: 3,
-      agendamentos_mes: 120
-    }
-  },
-  professional: {
-    plano: "professional",
-    nome: "Profissional",
-    valor_mensal: 119,
-    limites: {
-      usuarios: 10,
-      profissionais: 15,
-      agendamentos_mes: 800
-    }
-  },
-  business: {
-    plano: "business",
-    nome: "Empresarial",
-    valor_mensal: 0,
-    limites: {
-      usuarios: null,
-      profissionais: null,
-      agendamentos_mes: null
-    }
-  }
-};
+const { PLANS } = require("../config/plans");
+const {
+  buscarOuCriarAssinatura,
+  montarAssinaturaComPlano,
+  obterAssinaturaComUso,
+  obterUsoPlano
+} = require("../services/planLimitService");
 
 const MERCADO_PAGO_API_URL = "https://api.mercadopago.com";
 
@@ -83,41 +57,13 @@ async function mercadoPagoRequest(path, options = {}) {
   return data;
 }
 
-async function buscarOuCriarAssinatura(empresaId) {
-  const existente = await pool.query(
-    "SELECT * FROM assinaturas WHERE empresa_id = $1",
-    [empresaId]
-  );
-
-  if (existente.rows[0]) {
-    return existente.rows[0];
-  }
-
-  const criada = await pool.query(
-    `INSERT INTO assinaturas (empresa_id, plano, valor_mensal)
-     VALUES ($1, 'starter', $2)
-     RETURNING *`,
-    [empresaId, PLANOS.starter.valor_mensal]
-  );
-
-  return criada.rows[0];
-}
-
 async function obter(req, res) {
-  const assinatura = await buscarOuCriarAssinatura(req.usuario.empresa_id);
-  const plano = PLANOS[assinatura.plano] || PLANOS.starter;
-
-  res.json({
-    ...assinatura,
-    nome: plano.nome,
-    limites: plano.limites,
-    planos: Object.values(PLANOS)
-  });
+  res.json(await obterAssinaturaComUso(req.usuario.empresa_id));
 }
 
 async function atualizar(req, res) {
   const { plano } = req.body;
-  const planoEscolhido = PLANOS[plano];
+  const planoEscolhido = PLANS[plano];
 
   if (!planoEscolhido) {
     return res.status(400).json({ mensagem: "Plano invalido" });
@@ -138,15 +84,13 @@ async function atualizar(req, res) {
   );
 
   res.json({
-    ...result.rows[0],
-    nome: planoEscolhido.nome,
-    limites: planoEscolhido.limites
+    ...montarAssinaturaComPlano(result.rows[0], await obterUsoPlano(req.usuario.empresa_id))
   });
 }
 
 async function criarCheckout(req, res) {
   const { plano } = req.body;
-  const planoEscolhido = PLANOS[plano];
+  const planoEscolhido = PLANS[plano];
 
   if (!planoEscolhido) {
     return res.status(400).json({ mensagem: "Plano invalido" });
@@ -219,9 +163,7 @@ async function criarCheckout(req, res) {
 
   res.status(201).json({
     assinatura: {
-      ...assinaturaResult.rows[0],
-      nome: planoEscolhido.nome,
-      limites: planoEscolhido.limites
+      ...montarAssinaturaComPlano(assinaturaResult.rows[0], await obterUsoPlano(req.usuario.empresa_id))
     },
     checkout_url: checkoutUrl,
     mercado_pago_preapproval_id: preapproval.id
@@ -248,13 +190,7 @@ async function sincronizarMercadoPago(req, res) {
     [status, preapproval.init_point || preapproval.sandbox_init_point || null, req.usuario.empresa_id]
   );
 
-  const plano = PLANOS[result.rows[0].plano] || PLANOS.starter;
-
-  res.json({
-    ...result.rows[0],
-    nome: plano.nome,
-    limites: plano.limites
-  });
+  res.json(montarAssinaturaComPlano(result.rows[0], await obterUsoPlano(req.usuario.empresa_id)));
 }
 
 async function webhook(req, res) {

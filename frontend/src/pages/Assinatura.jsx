@@ -3,6 +3,16 @@ import { Check, CreditCard, Crown, Loader2, RefreshCw, ShieldCheck } from "lucid
 import { plans } from "../data/plans.js";
 import api from "../services/api.js";
 
+const usageLabels = {
+  usuarios: "Usuarios",
+  profissionais: "Profissionais",
+  agendamentos_mes: "Agendamentos no mes"
+};
+
+function formatLimit(limit) {
+  return limit === null || limit === undefined ? "Ilimitado" : limit;
+}
+
 export default function Assinatura() {
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const [assinatura, setAssinatura] = useState(null);
@@ -75,6 +85,13 @@ export default function Assinatura() {
   }
 
   const statusLabel = assinatura?.status || "ATIVA";
+  const usageRows = Object.entries(usageLabels).map(([key, label]) => {
+    const limit = assinatura?.limites?.[key];
+    const used = assinatura?.uso?.[key] ?? 0;
+    const percent = limit ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+
+    return { key, label, limit, used, percent };
+  });
 
   return (
     <section className="content-stack">
@@ -97,6 +114,33 @@ export default function Assinatura() {
           <span>{loading ? "Carregando..." : `${planoAtual.price}${planoAtual.period}`}</span>
         </div>
       </section>
+
+      {!loading && assinatura && (
+        <section className="panel plan-usage-panel">
+          <div className="panel-header">
+            <div>
+              <span className="eyebrow">Uso do plano</span>
+              <h2>Limites incluidos na assinatura</h2>
+            </div>
+          </div>
+
+          <div className="plan-usage-grid">
+            {usageRows.map((item) => (
+              <article className="plan-usage-item" key={item.key}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <span>
+                    {item.used} de {formatLimit(item.limit)}
+                  </span>
+                </div>
+                <div className="usage-bar" aria-hidden="true">
+                  <span style={{ width: item.limit ? `${item.percent}%` : "100%" }} />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
       {assinatura?.mercado_pago_preapproval_id && (
         <section className="panel billing-note">

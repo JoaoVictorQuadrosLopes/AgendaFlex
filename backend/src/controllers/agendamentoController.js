@@ -1,5 +1,6 @@
 const pool = require("../config/database");
 const { enviarMensagemTexto } = require("../services/whatsappService");
+const { verificarLimiteDisponivel } = require("../services/planLimitService");
 
 const STATUS_VALIDOS = ["AGENDADO", "CONFIRMADO", "EM_ATENDIMENTO", "FINALIZADO", "CANCELADO", "NAO_COMPARECEU"];
 
@@ -71,6 +72,8 @@ async function criar(req, res) {
   if (!cliente_id || !profissional_id || !servico_id || !data_agendamento || !hora_inicio || !hora_fim) {
     return res.status(400).json({ mensagem: "Dados obrigatorios nao informados" });
   }
+
+  await verificarLimiteDisponivel(req.usuario.empresa_id, "agendamentos_mes");
 
   const conflito = await pool.query(
     `SELECT id FROM agendamentos

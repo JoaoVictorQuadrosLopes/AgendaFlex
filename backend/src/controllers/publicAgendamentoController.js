@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const { verificarLimiteDisponivel } = require("../services/planLimitService");
 
 const HORA_ABERTURA = "08:00";
 const HORA_FECHAMENTO = "18:00";
@@ -192,6 +193,8 @@ async function criarAgendamento(req, res) {
       throw new Error("Empresa nao encontrada");
     }
 
+    await verificarLimiteDisponivel(empresa.id, "agendamentos_mes");
+
     const servicoResult = await client.query(
       `SELECT id, nome, duracao_minutos
        FROM servicos
@@ -281,7 +284,11 @@ async function criarAgendamento(req, res) {
     });
   } catch (error) {
     await client.query("ROLLBACK");
-    res.status(error.message.includes("indisponivel") ? 409 : 400).json({ mensagem: error.message });
+    res.status(error.statusCode || (error.message.includes("indisponivel") ? 409 : 400)).json({
+      mensagem: error.message,
+      code: error.code,
+      details: error.details
+    });
   } finally {
     client.release();
   }

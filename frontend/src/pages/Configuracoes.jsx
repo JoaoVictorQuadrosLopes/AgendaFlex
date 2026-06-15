@@ -16,6 +16,7 @@ import {
 import FormField from "../components/FormField.jsx";
 import api from "../services/api.js";
 import { roleDescriptions, roles } from "../config/permissions.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const initialForm = {
   id: "",
@@ -45,6 +46,7 @@ const segmentos = [
 ];
 
 export default function Configuracoes() {
+  const { usuario, atualizarUsuario } = useAuth();
   const [form, setForm] = useState(initialForm);
   const [usuarios, setUsuarios] = useState([]);
   const [accessForm, setAccessForm] = useState({ nome: "", email: "", senha: "", tipo: "RECEPCAO" });
@@ -151,7 +153,10 @@ export default function Configuracoes() {
           delete payload.senha;
         }
 
-        await api.put(`/usuarios/${editingAccessId}`, payload);
+        const { data } = await api.put(`/usuarios/${editingAccessId}`, payload);
+        if (String(editingAccessId) === String(usuario?.id)) {
+          atualizarUsuario(data);
+        }
         setSucesso("Acesso atualizado com sucesso.");
       } else {
         await api.post("/usuarios", accessForm);
@@ -232,8 +237,9 @@ export default function Configuracoes() {
   const linkPublico = agendaRef ? `${window.location.origin}/agendar/${agendaRef}` : "";
 
   return (
-    <section className="split-view settings-view">
-      <form className="panel compact-form" onSubmit={salvar}>
+    <section className="content-stack settings-stack">
+      <section className="split-view settings-view">
+        <form className="panel compact-form" onSubmit={salvar}>
         <div className="panel-header">
           <div>
             <span className="eyebrow">Empresa</span>
@@ -325,71 +331,167 @@ export default function Configuracoes() {
           <Save size={18} />
           {saving ? "Salvando..." : "Salvar configuracoes"}
         </button>
-      </form>
+        </form>
 
-      <section className="panel">
-        <div className="panel-header">
-          <div>
-            <span className="eyebrow">Operacao</span>
-            <h2>Como o AgendaFlex vai se comportar</h2>
+        <section className="panel">
+          <div className="panel-header">
+            <div>
+              <span className="eyebrow">Operacao</span>
+              <h2>Como o AgendaFlex vai se comportar</h2>
+            </div>
           </div>
-        </div>
 
-        <div className="principle-list">
-          {resumo.map((item) => (
-            <article key={item.label}>
-              <Building2 size={21} />
+          <div className="principle-list">
+            {resumo.map((item) => (
+              <article key={item.label}>
+                <Building2 size={21} />
+                <div>
+                  <strong>{item.label}</strong>
+                  <span>{item.value}</span>
+                </div>
+              </article>
+            ))}
+
+            <article>
+              <ShieldCheck size={21} />
               <div>
-                <strong>{item.label}</strong>
-                <span>{item.value}</span>
+                <strong>Dados separados por empresa</strong>
+                <span>Clientes, profissionais, servicos e agenda ficam vinculados ao seu cadastro.</span>
               </div>
             </article>
-          ))}
+            <article>
+              <MessageSquareText size={21} />
+              <div>
+                <strong>Comunicacao pronta para evoluir</strong>
+                <span>Confirmacoes usam a WhatsApp Cloud API oficial da Meta.</span>
+              </div>
+            </article>
+            <article>
+              <Bell size={21} />
+              <div>
+                <strong>Rotina sem retrabalho</strong>
+                <span>Status, lembretes e relatorios ajudam a reduzir processos manuais.</span>
+              </div>
+            </article>
+            <article>
+              <Cloud size={21} />
+              <div>
+                <strong>100% online</strong>
+                <span>Banco em nuvem com Neon e acesso pelo navegador, sem servidor local de banco.</span>
+              </div>
+            </article>
+          </div>
 
-          <article>
-            <ShieldCheck size={21} />
-            <div>
-              <strong>Dados separados por empresa</strong>
-              <span>Clientes, profissionais, servicos e agenda ficam vinculados ao seu cadastro.</span>
+          {linkPublico && (
+            <div className="public-link-box">
+              <div>
+                <strong>Link publico de agendamento</strong>
+                <span>{linkPublico}</span>
+              </div>
+              <button type="button" onClick={() => navigator.clipboard?.writeText(linkPublico)} title="Copiar link">
+                <Copy size={18} />
+              </button>
+              <a href={linkPublico} target="_blank" rel="noreferrer" title="Abrir link publico">
+                <ExternalLink size={18} />
+              </a>
             </div>
-          </article>
-          <article>
-            <MessageSquareText size={21} />
-            <div>
-              <strong>Comunicacao pronta para evoluir</strong>
-              <span>Confirmacoes usam a WhatsApp Cloud API oficial da Meta.</span>
-            </div>
-          </article>
-          <article>
-            <Bell size={21} />
-            <div>
-              <strong>Rotina sem retrabalho</strong>
-              <span>Status, lembretes e relatorios ajudam a reduzir processos manuais.</span>
-            </div>
-          </article>
-          <article>
-            <Cloud size={21} />
-            <div>
-              <strong>100% online</strong>
-              <span>Banco em nuvem com Neon e acesso pelo navegador, sem servidor local de banco.</span>
-            </div>
-          </article>
+          )}
+        </section>
+      </section>
+
+      <section className="panel access-management-panel">
+        <div className="panel-header">
+          <div>
+            <span className="eyebrow">Acessos</span>
+            <h2>Usuarios e permissoes</h2>
+          </div>
         </div>
 
-        {linkPublico && (
-          <div className="public-link-box">
-            <div>
-              <strong>Link publico de agendamento</strong>
-              <span>{linkPublico}</span>
+        <div className="access-management-grid">
+          <form className="access-form" onSubmit={salvarAcesso}>
+            <div className="form-grid two">
+              <FormField label="Nome">
+                <input value={accessForm.nome} onChange={(event) => updateAccess("nome", event.target.value)} />
+              </FormField>
+              <FormField label="E-mail">
+                <input
+                  type="email"
+                  value={accessForm.email}
+                  onChange={(event) => updateAccess("email", event.target.value)}
+                />
+              </FormField>
             </div>
-            <button type="button" onClick={() => navigator.clipboard?.writeText(linkPublico)} title="Copiar link">
-              <Copy size={18} />
-            </button>
-            <a href={linkPublico} target="_blank" rel="noreferrer" title="Abrir link publico">
-              <ExternalLink size={18} />
-            </a>
+
+            <div className="form-grid two">
+              <FormField label={editingAccessId ? "Nova senha opcional" : "Senha"}>
+                <input
+                  type="password"
+                  value={accessForm.senha}
+                  onChange={(event) => updateAccess("senha", event.target.value)}
+                />
+              </FormField>
+              <FormField label="Perfil">
+                <select value={accessForm.tipo} onChange={(event) => updateAccess("tipo", event.target.value)}>
+                  {Object.entries(roles).map(([role, label]) => (
+                    <option key={role} value={role}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
+
+            <div className="role-description">
+              <ShieldCheck size={18} />
+              <span>{roleDescriptions[accessForm.tipo]}</span>
+            </div>
+
+            <div className="access-actions">
+              <button className="primary-button" type="submit" disabled={saving}>
+                {editingAccessId ? <Save size={18} /> : <UserPlus size={18} />}
+                {saving ? "Salvando..." : editingAccessId ? "Salvar acesso" : "Criar acesso"}
+              </button>
+              {editingAccessId && (
+                <button className="outline-button" type="button" onClick={limparAccessForm}>
+                  <X size={18} />
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </form>
+
+          <div className="access-list">
+            {usuarios.map((item) => {
+              const isCurrentUser = String(item.id) === String(usuario?.id);
+
+              return (
+                <article className="access-user-row" key={item.id}>
+                  <div className="workspace-avatar">{item.nome?.slice(0, 2).toUpperCase()}</div>
+                  <div className="access-user-main">
+                    <strong>{item.nome}</strong>
+                    <span>{item.email}</span>
+                  </div>
+                  <span className="role-pill">{roles[item.tipo] || item.tipo}</span>
+                  {isCurrentUser && <span className="current-user-pill">Voce</span>}
+                  <div className="access-user-actions">
+                    <button type="button" className="icon-button" onClick={() => editarAcesso(item)} title="Editar acesso">
+                      <Pencil size={17} />
+                    </button>
+                    <button
+                      type="button"
+                      className="icon-button danger"
+                      onClick={() => excluirAcesso(item.id)}
+                      disabled={isCurrentUser}
+                      title={isCurrentUser ? "Voce nao pode excluir seu proprio acesso" : "Excluir acesso"}
+                    >
+                      <Trash2 size={17} />
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-        )}
+        </div>
       </section>
     </section>
   );

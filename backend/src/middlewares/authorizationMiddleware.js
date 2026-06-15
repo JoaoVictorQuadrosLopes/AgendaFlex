@@ -1,6 +1,4 @@
-function normalizeRole(role) {
-  return String(role || "").toUpperCase();
-}
+const { normalizeRole } = require("../config/roles");
 
 function authorize(...allowedRoles) {
   const normalizedAllowedRoles = allowedRoles.map(normalizeRole);

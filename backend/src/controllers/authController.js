@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../config/database");
+const { getPlan } = require("../config/plans");
 
 function gerarToken(usuario) {
   return jwt.sign(
@@ -41,10 +42,12 @@ async function register(req, res) {
       [empresaResult.rows[0].id, usuario.nome, usuario.email, senhaHash]
     );
 
+    const planoInicial = getPlan("starter");
+
     await client.query(
       `INSERT INTO assinaturas (empresa_id, plano, valor_mensal)
-       VALUES ($1, 'starter', 59.00)`,
-      [empresaResult.rows[0].id]
+       VALUES ($1, $2, $3)`,
+      [empresaResult.rows[0].id, planoInicial.plano, planoInicial.valor_mensal]
     );
 
     await client.query("COMMIT");
@@ -96,4 +99,8 @@ async function login(req, res) {
   });
 }
 
-module.exports = { register, login };
+async function me(req, res) {
+  return res.json({ usuario: req.usuario });
+}
+
+module.exports = { register, login, me };

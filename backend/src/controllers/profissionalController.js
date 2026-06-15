@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const { verificarLimiteDisponivel } = require("../services/planLimitService");
 
 async function listar(req, res) {
   const result = await pool.query(
@@ -15,6 +16,8 @@ async function criar(req, res) {
   if (!nome) {
     return res.status(400).json({ mensagem: "Nome e obrigatorio" });
   }
+
+  await verificarLimiteDisponivel(req.usuario.empresa_id, "profissionais");
 
   const result = await pool.query(
     `INSERT INTO profissionais (empresa_id, nome, telefone, email, funcao)

@@ -44,7 +44,11 @@ app.use("/api/usuarios", usuarioRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ mensagem: "Erro interno no servidor" });
+  res.status(err.statusCode || 500).json({
+    mensagem: err.statusCode ? err.message : "Erro interno no servidor",
+    code: err.code,
+    details: err.details
+  });
 });
 
 const PORT = process.env.PORT || 3000;
