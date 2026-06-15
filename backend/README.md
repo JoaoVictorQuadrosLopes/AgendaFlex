@@ -47,6 +47,16 @@ Em producao, a API falha ao iniciar se `DATABASE_URL` ou `JWT_SECRET` nao estive
 
 Essas rotas podem ser usadas no deploy para health checks.
 
+## Protecao contra abuso
+
+As rotas de login/cadastro e agendamento publico usam rate limit em memoria:
+
+- `POST /api/auth/register` e `POST /api/auth/login`: 20 tentativas a cada 15 minutos por IP.
+- `GET /api/public/agendar/:empresaId` e `/horarios`: 120 consultas por minuto por IP.
+- `POST /api/public/agendar/:empresaId/agendamentos`: 12 tentativas a cada 15 minutos por IP.
+
+Em deploy com multiplas instancias, substitua essa protecao por rate limit compartilhado no proxy, gateway ou Redis.
+
 ## Checklist de producao
 
 1. Configure `NODE_ENV=production`.
