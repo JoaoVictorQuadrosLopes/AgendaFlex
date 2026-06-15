@@ -22,6 +22,26 @@ export const pagePermissions = {
   "/app/configuracoes": ["ADMIN"]
 };
 
+export const actionPermissions = {
+  "agendamentos:create": ["ADMIN", "RECEPCAO"],
+  "agendamentos:update": ["ADMIN", "RECEPCAO"],
+  "agendamentos:updateStatus": ["ADMIN", "RECEPCAO", "PROFISSIONAL"],
+  "agendamentos:sendWhatsapp": ["ADMIN", "RECEPCAO"],
+  "agendamentos:delete": ["ADMIN"],
+  "clientes:create": ["ADMIN", "RECEPCAO"],
+  "clientes:update": ["ADMIN", "RECEPCAO"],
+  "clientes:delete": ["ADMIN"],
+  "profissionais:create": ["ADMIN"],
+  "profissionais:update": ["ADMIN"],
+  "profissionais:delete": ["ADMIN"],
+  "servicos:create": ["ADMIN", "RECEPCAO"],
+  "servicos:update": ["ADMIN", "RECEPCAO"],
+  "servicos:delete": ["ADMIN"],
+  "usuarios:manage": ["ADMIN"],
+  "empresa:update": ["ADMIN"],
+  "assinatura:manage": ["ADMIN"]
+};
+
 export const permissionMatrix = [
   { label: "Dashboard", path: "/app", roles: pagePermissions["/app"] },
   { label: "Agenda", path: "/app/agenda", roles: pagePermissions["/app/agenda"] },
@@ -40,6 +60,11 @@ export function normalizeRole(role) {
 
 export function canAccess(role, path) {
   const allowedRoles = pagePermissions[path] || [];
+  return allowedRoles.includes(normalizeRole(role));
+}
+
+export function canPerform(role, action) {
+  const allowedRoles = actionPermissions[action] || [];
   return allowedRoles.includes(normalizeRole(role));
 }
 

@@ -5,9 +5,12 @@ import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
 import PlanLimitAlert from "../components/PlanLimitAlert.jsx";
+import { canPerform } from "../config/permissions.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { getApiErrorMessage, isPlanLimitError } from "../utils/apiErrors.js";
 
 export default function Profissionais() {
+  const { usuario } = useAuth();
   const [profissionais, setProfissionais] = useState([]);
   const [form, setForm] = useState({ nome: "", telefone: "", email: "", funcao: "" });
   const [editingId, setEditingId] = useState(null);
@@ -71,9 +74,14 @@ export default function Profissionais() {
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
   }
+  const canCreateProfessional = canPerform(usuario?.tipo, "profissionais:create");
+  const canUpdateProfessional = canPerform(usuario?.tipo, "profissionais:update");
+  const canDeleteProfessional = canPerform(usuario?.tipo, "profissionais:delete");
+  const canManageProfessional = canCreateProfessional || canUpdateProfessional;
 
   return (
-    <section className="split-view">
+    <section className={`split-view ${!canManageProfessional ? "read-only" : ""}`}>
+      {canManageProfessional && (
       <form className="panel compact-form" onSubmit={salvar}>
         <div className="panel-header">
           <h2>{editingId ? "Editar profissional" : "Novo profissional"}</h2>
@@ -102,6 +110,7 @@ export default function Profissionais() {
           {editingId ? "Atualizar profissional" : "Salvar profissional"}
         </button>
       </form>
+      )}
 
       <section className="panel">
         <div className="panel-header">
@@ -119,14 +128,20 @@ export default function Profissionais() {
                   <span>{profissional.funcao || "Funcao nao informada"}</span>
                 </div>
                 <span>{profissional.telefone || "Sem telefone"}</span>
+                {(canUpdateProfessional || canDeleteProfessional) && (
                 <div className="row-actions">
+                  {canUpdateProfessional && (
                   <button className="icon-button" type="button" onClick={() => editar(profissional)} title="Editar profissional">
                     <Pencil size={17} />
                   </button>
+                  )}
+                  {canDeleteProfessional && (
                   <button className="icon-button danger" type="button" onClick={() => excluir(profissional.id)} title="Excluir profissional">
                     <Trash2 size={17} />
                   </button>
+                  )}
                 </div>
+                )}
               </article>
             ))}
           </div>

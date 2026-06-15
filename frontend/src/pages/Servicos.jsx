@@ -4,8 +4,11 @@ import { Pencil, Plus, Trash2, X } from "lucide-react";
 import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
+import { canPerform } from "../config/permissions.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Servicos() {
+  const { usuario } = useAuth();
   const [servicos, setServicos] = useState([]);
   const [form, setForm] = useState({ nome: "", descricao: "", duracao_minutos: 30, valor: 0 });
   const [editingId, setEditingId] = useState(null);
@@ -57,9 +60,14 @@ export default function Servicos() {
   function update(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
   }
+  const canCreateService = canPerform(usuario?.tipo, "servicos:create");
+  const canUpdateService = canPerform(usuario?.tipo, "servicos:update");
+  const canDeleteService = canPerform(usuario?.tipo, "servicos:delete");
+  const canManageService = canCreateService || canUpdateService;
 
   return (
-    <section className="split-view">
+    <section className={`split-view ${!canManageService ? "read-only" : ""}`}>
+      {canManageService && (
       <form className="panel compact-form" onSubmit={salvar}>
         <div className="panel-header">
           <h2>{editingId ? "Editar servico" : "Novo servico"}</h2>
@@ -88,6 +96,7 @@ export default function Servicos() {
           {editingId ? "Atualizar servico" : "Salvar servico"}
         </button>
       </form>
+      )}
 
       <section className="panel">
         <div className="panel-header">
@@ -105,14 +114,20 @@ export default function Servicos() {
                   <span>{servico.duracao_minutos} min</span>
                 </div>
                 <span>R$ {servico.valor}</span>
+                {(canUpdateService || canDeleteService) && (
                 <div className="row-actions">
+                  {canUpdateService && (
                   <button className="icon-button" type="button" onClick={() => editar(servico)} title="Editar servico">
                     <Pencil size={17} />
                   </button>
+                  )}
+                  {canDeleteService && (
                   <button className="icon-button danger" type="button" onClick={() => excluir(servico.id)} title="Excluir servico">
                     <Trash2 size={17} />
                   </button>
+                  )}
                 </div>
+                )}
               </article>
             ))}
           </div>

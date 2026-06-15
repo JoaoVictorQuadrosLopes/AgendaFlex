@@ -1,103 +1,195 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   BadgeDollarSign,
   CalendarCheck,
+  CheckCircle2,
+  CircleMinus,
   ClipboardList,
   ContactRound,
-  FileCheck2,
+  FileBarChart,
   KeyRound,
   MessageCircle,
   Package,
-  CheckCircle2,
-  CircleMinus,
+  Scissors,
+  Settings,
   ShieldCheck,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Users
 } from "lucide-react";
-import { permissionMatrix, roles } from "../config/permissions.js";
+import { canAccess, permissionMatrix, roles } from "../config/permissions.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const modulos = [
   {
-    title: "Usuários e cargos",
-    text: "Controle quem acessa o sistema e prepare permissões por função, como administrador, recepção e profissional.",
-    icon: KeyRound,
-    status: "Planejado"
-  },
-  {
-    title: "Habilitações",
-    text: "Separe visualização, cadastro e edição por módulo para manter a operação segura conforme cada cargo.",
-    icon: ShieldCheck,
-    status: "Planejado"
-  },
-  {
-    title: "Clientes e fornecedores",
-    text: "Centralize dados de contato, documentos, observações e histórico de relacionamento.",
-    icon: ContactRound,
-    status: "MVP"
-  },
-  {
-    title: "Serviços e procedimentos",
-    text: "Cadastre duração, valor e descrição. A próxima evolução pode incluir combos, comissões e vigência.",
-    icon: ClipboardList,
-    status: "MVP"
-  },
-  {
     title: "Agenda operacional",
-    text: "Crie compromissos com cliente, profissional, serviço, horário de início, fim e status de atendimento.",
+    text: "Crie, acompanhe e confirme atendimentos por dia, profissional, origem e status.",
     icon: CalendarCheck,
-    status: "MVP"
+    status: "Ativo",
+    path: "/app/agenda",
+    action: "Abrir agenda"
   },
   {
-    title: "Confirmação automática",
-    text: "Começa com link de WhatsApp e pode evoluir para envio automático por WhatsApp, e-mail ou SMS.",
+    title: "Clientes",
+    text: "Cadastre contatos, documentos e observacoes para acelerar novos agendamentos.",
+    icon: ContactRound,
+    status: "Ativo",
+    path: "/app/clientes",
+    action: "Gerenciar clientes"
+  },
+  {
+    title: "Profissionais",
+    text: "Defina quem atende e mantenha dados da equipe organizados.",
+    icon: Users,
+    status: "Ativo",
+    path: "/app/profissionais",
+    action: "Gerenciar equipe"
+  },
+  {
+    title: "Servicos",
+    text: "Configure duracao, valor e descricao dos servicos vendidos na agenda.",
+    icon: Scissors,
+    status: "Ativo",
+    path: "/app/servicos",
+    action: "Gerenciar servicos"
+  },
+  {
+    title: "Usuarios e cargos",
+    text: "Crie acessos separados para administrador, recepcao e profissional.",
+    icon: KeyRound,
+    status: "Ativo",
+    path: "/app/configuracoes",
+    action: "Configurar acessos"
+  },
+  {
+    title: "Permissoes",
+    text: "A matriz abaixo controla navegacao e acoes como criar, editar e excluir registros.",
+    icon: ShieldCheck,
+    status: "Ativo",
+    path: "/app/modulos",
+    action: "Ver matriz"
+  },
+  {
+    title: "Assinatura",
+    text: "Acompanhe plano, limites de uso e preparacao para checkout.",
+    icon: BadgeDollarSign,
+    status: "Ativo",
+    path: "/app/assinatura",
+    action: "Ver assinatura"
+  },
+  {
+    title: "Configuracoes da empresa",
+    text: "Ajuste segmento, termos usados no sistema, link publico e integracoes.",
+    icon: Settings,
+    status: "Ativo",
+    path: "/app/configuracoes",
+    action: "Abrir configuracoes"
+  },
+  {
+    title: "WhatsApp",
+    text: "Webhook e envio por WhatsApp Cloud API ja estao preparados para credenciais reais.",
     icon: MessageCircle,
-    status: "MVP"
+    status: "Configuravel",
+    path: "/app/configuracoes",
+    action: "Configurar WhatsApp"
+  },
+  {
+    title: "Relatorios",
+    text: "Indicadores iniciais existem; a proxima evolucao e trazer filtros reais e exportacao.",
+    icon: FileBarChart,
+    status: "Em evolucao",
+    path: "/app/relatorios",
+    action: "Abrir relatorios"
   },
   {
     title: "Financeiro",
-    text: "Prepare contas, recibos, cobranças e faturamento previsto para acompanhar o resultado da empresa.",
-    icon: BadgeDollarSign,
+    text: "Contas, recibos, cobrancas e faturamento operacional entram depois do checkout.",
+    icon: ClipboardList,
     status: "Futuro"
   },
   {
     title: "Estoque",
-    text: "Útil para salões, clínicas, oficinas e pet shops que usam produtos, peças ou insumos nos atendimentos.",
+    text: "Modulo futuro para produtos, pecas e insumos usados em atendimentos.",
     icon: Package,
     status: "Futuro"
   },
   {
-    title: "Relatórios personalizados",
-    text: "Analise agendamentos, cancelamentos, faltas, faturamento e produtividade por profissional.",
-    icon: FileCheck2,
-    status: "Planejado"
-  },
-  {
-    title: "Personalização SaaS",
-    text: "Adapte nomes, segmentos, módulos e regras para cada tipo de negócio sem mudar o sistema inteiro.",
+    title: "Personalizacao SaaS",
+    text: "Base preparada para adaptar nomes, segmentos e regras por empresa.",
     icon: SlidersHorizontal,
-    status: "Planejado"
+    status: "Em evolucao",
+    path: "/app/configuracoes",
+    action: "Personalizar"
   }
 ];
 
 export default function Modulos() {
+  const { usuario } = useAuth();
+  const modulosAtivos = modulos.filter((modulo) => modulo.path && canAccess(usuario?.tipo, modulo.path)).length;
+
   return (
-    <section className="content-stack">
-      <section className="panel intro-panel">
+    <section className="content-stack modules-workspace">
+      <section className="modules-command-panel">
         <div>
-          <span className="eyebrow">Organização do produto</span>
-          <h2>Um sistema modular para negócios que trabalham com horários</h2>
+          <span className="eyebrow">Modulos do sistema</span>
+          <h2>Controle o que ja esta funcional e quem pode acessar cada area.</h2>
           <p>
-            O AgendaFlex pode crescer como uma plataforma SaaS: começa com agenda,
-            clientes e serviços, depois recebe permissões, financeiro, relatórios,
-            estoque e automações conforme o segmento atendido.
+            Esta tela agora funciona como um mapa operacional: os cards abrem modulos reais,
+            e a matriz mostra a divisao de cargos usada pela navegacao e pelas acoes do sistema.
           </p>
         </div>
+        <div className="module-kpis" aria-label="Resumo de modulos">
+          <article>
+            <strong>{modulos.filter((modulo) => modulo.status === "Ativo").length}</strong>
+            <span>ativos</span>
+          </article>
+          <article>
+            <strong>{modulosAtivos}</strong>
+            <span>liberados para voce</span>
+          </article>
+          <article>
+            <strong>{Object.keys(roles).length}</strong>
+            <span>cargos</span>
+          </article>
+        </div>
+      </section>
+
+      <section className="module-grid functional-module-grid">
+        {modulos.map((modulo) => {
+          const Icon = modulo.icon;
+          const unlocked = modulo.path ? canAccess(usuario?.tipo, modulo.path) : false;
+
+          return (
+            <article className={`module-card module-status-${modulo.status.replace(/\s/g, "-").toLowerCase()}`} key={modulo.title}>
+              <div className="module-icon">
+                <Icon size={21} />
+              </div>
+              <div>
+                <div className="module-heading">
+                  <h3>{modulo.title}</h3>
+                  <span>{modulo.status}</span>
+                </div>
+                <p>{modulo.text}</p>
+                {modulo.path && unlocked ? (
+                  <Link className="outline-button module-action" to={modulo.path}>
+                    {modulo.action}
+                  </Link>
+                ) : modulo.path ? (
+                  <span className="module-locked">Restrito para seu cargo</span>
+                ) : (
+                  <span className="module-locked">Ainda nao implementado</span>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </section>
 
       <section className="panel access-matrix-panel">
         <div className="panel-header">
           <div>
-            <span className="eyebrow">Hierarquia</span>
-            <h2>Quem acessa cada parte do sistema</h2>
+            <span className="eyebrow">Cargos e permissoes</span>
+            <h2>Matriz de acesso por area</h2>
           </div>
         </div>
 
@@ -123,26 +215,6 @@ export default function Modulos() {
             </div>
           ))}
         </div>
-      </section>
-
-      <section className="module-grid">
-        {modulos.map((modulo) => {
-          const Icon = modulo.icon;
-          return (
-            <article className="module-card" key={modulo.title}>
-              <div className="module-icon">
-                <Icon size={21} />
-              </div>
-              <div>
-                <div className="module-heading">
-                  <h3>{modulo.title}</h3>
-                  <span>{modulo.status}</span>
-                </div>
-                <p>{modulo.text}</p>
-              </div>
-            </article>
-          );
-        })}
       </section>
     </section>
   );

@@ -5552,11 +5552,123 @@ tr:hover td {
   color: var(--muted-strong);
 }
 
+.split-view.read-only,
+.client-layout.read-only {
+  grid-template-columns: 1fr;
+}
+
+.modules-workspace {
+  gap: 18px;
+}
+
+.modules-command-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 22px;
+}
+
+.modules-command-panel h2 {
+  max-width: 780px;
+  margin: 6px 0 0;
+  color: var(--text);
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+
+.modules-command-panel p {
+  max-width: 780px;
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+.module-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(96px, 1fr));
+  gap: 10px;
+}
+
+.module-kpis article {
+  min-width: 96px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  padding: 14px;
+}
+
+.module-kpis strong,
+.module-kpis span {
+  display: block;
+}
+
+.module-kpis strong {
+  color: var(--text);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.module-kpis span {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.functional-module-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.functional-module-grid .module-card {
+  align-content: start;
+  min-height: 178px;
+}
+
+.functional-module-grid .module-card p {
+  margin-top: 8px;
+}
+
+.module-action {
+  width: fit-content;
+  min-height: 38px;
+  margin-top: 14px;
+  padding: 0 14px;
+}
+
+.module-locked {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 7px 10px;
+}
+
+.module-status-futuro {
+  opacity: 0.82;
+}
+
+.access-matrix-panel {
+  overflow-x: auto;
+}
+
+.access-matrix {
+  min-width: 720px;
+}
+
 @media (max-width: 1180px) {
   .agenda-command-panel,
   .client-command-panel,
   .agenda-form-layout,
-  .client-layout {
+  .client-layout,
+  .modules-command-panel {
     grid-template-columns: 1fr;
   }
 
@@ -5566,9 +5678,14 @@ tr:hover td {
   }
 
   .agenda-command-stats,
-  .client-kpis {
+  .client-kpis,
+  .module-kpis {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
+  }
+
+  .functional-module-grid {
+    grid-template-columns: 1fr;
   }
 
   .agenda-filters {
@@ -5579,6 +5696,7 @@ tr:hover td {
 @media (max-width: 760px) {
   .agenda-command-panel,
   .client-command-panel,
+  .modules-command-panel,
   .agenda-form-panel,
   .agenda-board-panel,
   .client-form-card,
@@ -5588,6 +5706,7 @@ tr:hover td {
 
   .agenda-command-stats,
   .client-kpis,
+  .module-kpis,
   .quick-client-box,
   .agenda-filters,
   .form-grid.two {

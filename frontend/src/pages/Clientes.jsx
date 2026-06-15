@@ -4,8 +4,11 @@ import { FileText, Mail, Pencil, Phone, Plus, Search, Trash2, UserPlus, X } from
 import api from "../services/api";
 import EmptyState from "../components/EmptyState.jsx";
 import FormField from "../components/FormField.jsx";
+import { canPerform } from "../config/permissions.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 export default function Clientes() {
+  const { usuario } = useAuth();
   const [clientes, setClientes] = useState([]);
   const [form, setForm] = useState({ nome: "", telefone: "", email: "", documento: "", observacoes: "" });
   const [editingId, setEditingId] = useState(null);
@@ -77,6 +80,10 @@ export default function Clientes() {
   const clientesComContato = useMemo(() => {
     return clientes.filter((cliente) => cliente.telefone || cliente.email).length;
   }, [clientes]);
+  const canCreateClient = canPerform(usuario?.tipo, "clientes:create");
+  const canUpdateClient = canPerform(usuario?.tipo, "clientes:update");
+  const canDeleteClient = canPerform(usuario?.tipo, "clientes:delete");
+  const canManageClient = canCreateClient || canUpdateClient;
 
   return (
     <section className="content-stack clients-workspace">
@@ -102,7 +109,8 @@ export default function Clientes() {
         </div>
       </section>
 
-      <section className="client-layout">
+      <section className={`client-layout ${!canManageClient ? "read-only" : ""}`}>
+        {canManageClient && (
         <form className="panel client-form-card" onSubmit={salvar}>
           <div className="panel-header">
             <div>
@@ -171,6 +179,7 @@ export default function Clientes() {
             </button>
           </div>
         </form>
+        )}
 
         <section className="panel client-list-panel">
           <div className="panel-header">
@@ -217,14 +226,20 @@ export default function Clientes() {
                     </div>
                     {cliente.documento && <small>Documento: {cliente.documento}</small>}
                   </div>
+                  {(canUpdateClient || canDeleteClient) && (
                   <div className="row-actions">
+                    {canUpdateClient && (
                     <button className="icon-button" type="button" onClick={() => editar(cliente)} title="Editar cliente">
                       <Pencil size={17} />
                     </button>
+                    )}
+                    {canDeleteClient && (
                     <button className="icon-button danger" type="button" onClick={() => excluir(cliente.id)} title="Excluir cliente">
                       <Trash2 size={17} />
                     </button>
+                    )}
                   </div>
+                  )}
                 </article>
               ))}
             </div>

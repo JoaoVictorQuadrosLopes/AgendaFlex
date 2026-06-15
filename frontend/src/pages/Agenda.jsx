@@ -7,6 +7,8 @@ import FormField from "../components/FormField.jsx";
 import OriginBadge from "../components/OriginBadge.jsx";
 import PlanLimitAlert from "../components/PlanLimitAlert.jsx";
 import StatusBadge from "../components/StatusBadge.jsx";
+import { canPerform } from "../config/permissions.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import { getApiErrorMessage, isPlanLimitError } from "../utils/apiErrors.js";
 
 const statusOptions = ["AGENDADO", "CONFIRMADO", "EM_ATENDIMENTO", "FINALIZADO", "CANCELADO", "NAO_COMPARECEU"];
@@ -66,6 +68,7 @@ function moedaBR(valor) {
 }
 
 export default function Agenda() {
+  const { usuario } = useAuth();
   const [abaAgenda, setAbaAgenda] = useState("agenda");
   const [dataSelecionada, setDataSelecionada] = useState(hojeISO());
   const [statusFiltro, setStatusFiltro] = useState("");
@@ -385,6 +388,11 @@ export default function Agenda() {
       return acc;
     }, {});
   }, [agendamentosSemana, diasSemana]);
+  const canCreateAppointment = canPerform(usuario?.tipo, "agendamentos:create");
+  const canUpdateAppointment = canPerform(usuario?.tipo, "agendamentos:update");
+  const canUpdateStatus = canPerform(usuario?.tipo, "agendamentos:updateStatus");
+  const canSendWhatsapp = canPerform(usuario?.tipo, "agendamentos:sendWhatsapp");
+  const canDeleteAppointment = canPerform(usuario?.tipo, "agendamentos:delete");
 
   return (
     <section className="content-stack agenda-clean-view">
@@ -415,11 +423,14 @@ export default function Agenda() {
           <button type="button" className={abaAgenda === "agenda" ? "active" : ""} onClick={() => setAbaAgenda("agenda")}>
             Agenda
           </button>
+          {canCreateAppointment && (
           <button type="button" className={abaAgenda === "form" ? "active" : ""} onClick={() => setAbaAgenda("form")}>
             {editandoId ? "Editar" : "Novo"}
           </button>
+          )}
         </div>
-        <button
+        {canCreateAppointment && (
+          <button
           className="primary-button compact-action"
           type="button"
           onClick={() => {
@@ -430,9 +441,10 @@ export default function Agenda() {
           <Plus size={18} />
           Novo agendamento
         </button>
+        )}
       </div>
 
-      {abaAgenda === "form" && (
+      {abaAgenda === "form" && canCreateAppointment && (
       <form className="panel compact-form agenda-form-panel" onSubmit={salvar}>
         <div className="panel-header">
           <h2>{editandoId ? "Editar agendamento" : "Novo agendamento"}</h2>
@@ -619,8 +631,8 @@ export default function Agenda() {
                         type="button"
                         className={`calendar-event status-line-${item.status}`}
                         key={item.id}
-                        onClick={() => iniciarEdicao(item)}
-                        title="Editar agendamento"
+                        onClick={() => (canUpdateAppointment ? iniciarEdicao(item) : undefined)}
+                        title={canUpdateAppointment ? "Editar agendamento" : "Consulta do agendamento"}
                       >
                         <strong>{String(item.hora_inicio).slice(0, 5)}</strong>
                         <span>{item.cliente_nome || "Cliente"}</span>
@@ -655,6 +667,7 @@ export default function Agenda() {
                   </div>
                 </div>
                 <div className="schedule-actions">
+                  {canUpdateStatus && (
                   <select value={item.status} onChange={(e) => alterarStatus(item.id, e.target.value)} aria-label="Alterar status">
                     {statusOptions.map((status) => (
                       <option key={status} value={status}>
@@ -662,6 +675,8 @@ export default function Agenda() {
                       </option>
                     ))}
                   </select>
+                  )}
+                  {canSendWhatsapp && (
                   <button
                     className="icon-button"
                     type="button"
@@ -670,12 +685,17 @@ export default function Agenda() {
                   >
                     <MessageCircle size={18} />
                   </button>
+                  )}
+                  {canUpdateAppointment && (
                   <button className="icon-button" type="button" onClick={() => iniciarEdicao(item)} title="Editar agendamento">
                     <Pencil size={18} />
                   </button>
+                  )}
+                  {canDeleteAppointment && (
                   <button className="icon-button danger" type="button" onClick={() => excluirAgendamento(item.id)} title="Excluir agendamento">
                     <Trash2 size={18} />
                   </button>
+                  )}
                 </div>
               </article>
               ))}
