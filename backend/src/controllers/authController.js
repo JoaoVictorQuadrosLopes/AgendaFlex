@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../config/database");
+const env = require("../config/env");
 const { getPlan } = require("../config/plans");
 
 function gerarToken(usuario) {
@@ -10,7 +11,7 @@ function gerarToken(usuario) {
       empresa_id: usuario.empresa_id,
       tipo: usuario.tipo
     },
-    process.env.JWT_SECRET,
+    env.JWT_SECRET,
     { expiresIn: "1d" }
   );
 }

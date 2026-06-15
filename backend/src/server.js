@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "../.env"), quiet: true });
+const env = require("./config/env");
+const pool = require("./config/database");
 
 const authRoutes = require("./routes/authRoutes");
 const clienteRoutes = require("./routes/clienteRoutes");
@@ -17,7 +17,32 @@ const usuarioRoutes = require("./routes/usuarioRoutes");
 
 const app = express();
 
-app.use(cors());
+app.disable("x-powered-by");
+
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+
+  if (env.isProduction) {
+    res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
+  }
+
+  next();
+});
+
+app.use(
+  cors({
+    credentials: true,
+    origin(origin, callback) {
+      if (!origin || env.CORS_ORIGINS.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Origem nao permitida pelo CORS"));
+    }
+  })
+);
 app.use(
   express.json({
     verify: (req, res, buf) => {
@@ -28,6 +53,27 @@ app.use(
 
 app.get("/", (req, res) => {
   res.json({ mensagem: "API AgendaFlex rodando com sucesso" });
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "agendaflex-api",
+    environment: env.NODE_ENV
+  });
+});
+
+app.get("/ready", async (req, res, next) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({
+      status: "ready",
+      database: "ok"
+    });
+  } catch (error) {
+    error.statusCode = 503;
+    next(error);
+  }
 });
 
 app.use("/api/auth", authRoutes);
@@ -51,8 +97,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+app.listen(env.PORT, () => {
+  console.log(`Servidor rodando na porta ${env.PORT}`);
 });

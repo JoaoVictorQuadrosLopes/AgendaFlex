@@ -1,4 +1,5 @@
 const pool = require("../config/database");
+const env = require("../config/env");
 const { PLANS } = require("../config/plans");
 const {
   buscarOuCriarAssinatura,
@@ -10,11 +11,11 @@ const {
 const MERCADO_PAGO_API_URL = "https://api.mercadopago.com";
 
 function getPublicUrl() {
-  return process.env.API_PUBLIC_URL || process.env.BACKEND_PUBLIC_URL || "";
+  return env.API_PUBLIC_URL;
 }
 
 function getFrontendUrl() {
-  return process.env.FRONTEND_URL || "http://127.0.0.1:5173";
+  return env.FRONTEND_URL;
 }
 
 function mapearStatusMercadoPago(status) {

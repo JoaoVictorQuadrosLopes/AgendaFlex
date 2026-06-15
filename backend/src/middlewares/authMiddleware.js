@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const pool = require("../config/database");
+const env = require("../config/env");
 
 async function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -17,7 +18,7 @@ async function authMiddleware(req, res, next) {
   let payload;
 
   try {
-    payload = jwt.verify(token, process.env.JWT_SECRET);
+    payload = jwt.verify(token, env.JWT_SECRET);
   } catch (error) {
     return res.status(401).json({ mensagem: "Token invalido ou expirado" });
   }

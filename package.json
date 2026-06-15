@@ -5,7 +5,9 @@
   "main": "backend/src/server.js",
   "scripts": {
     "dev": "node backend/src/server.js",
-    "start": "node backend/src/server.js"
+    "start": "node backend/src/server.js",
+    "check:backend": "node --check backend/src/server.js",
+    "build:frontend": "npm --prefix frontend run build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
